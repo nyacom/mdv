@@ -25,36 +25,39 @@ TOK_PRE1	= 1
 TOK_PRE2	= 2
 TOK_SETEXH2	= 3
 TOK_SETEXH1	= 4
-TOK_ATHXH4	= 5
-TOK_ATHXH3	= 6 
-TOK_ATHXH2	= 7
-TOK_ATHXH1	= 8
 
-TOK_LSTSPC0	= 9
-TOK_LSTSPC1	= 10
-TOK_LSTSPC2	= 11
-TOK_LSTSPC3	= 12
-TOK_LSTSPC4	= 13
+TOK_ATHXH6	= 5
+TOK_ATHXH5	= 6
+TOK_ATHXH4	= 7
+TOK_ATHXH3	= 8 
+TOK_ATHXH2	= 9
+TOK_ATHXH1	= 10
 
-TOK_LSTTAB1	= 14
-TOK_LSTTAB2	= 15
-TOK_LSTTAB3	= 16
-TOK_LSTTAB4	= 17
+TOK_LSTSPC0	= 11
+TOK_LSTSPC1	= 12
+TOK_LSTSPC2	= 13
+TOK_LSTSPC3	= 14
+TOK_LSTSPC4	= 15
 
-TOK_NLSTSPC0	= 18
-TOK_NLSTSPC1	= 19
-TOK_NLSTSPC2	= 20
-TOK_NLSTSPC3	= 21
-TOK_NLSTSPC4	= 22
+TOK_LSTTAB1	= 16
+TOK_LSTTAB2	= 17
+TOK_LSTTAB3	= 18
+TOK_LSTTAB4	= 19
 
-TOK_NLSTTAB1	= 23
-TOK_NLSTTAB2	= 24
-TOK_NLSTTAB3	= 25
-TOK_NLSTTAB4	= 26
+TOK_NLSTSPC0	= 20
+TOK_NLSTSPC1	= 21
+TOK_NLSTSPC2	= 22
+TOK_NLSTSPC3	= 23
+TOK_NLSTSPC4	= 24
 
-TOK_TABLE	= 27
-TOK_BRANK	= 28
-TOK_PLAIN	= 29
+TOK_NLSTTAB1	= 25
+TOK_NLSTTAB2	= 26
+TOK_NLSTTAB3	= 27
+TOK_NLSTTAB4	= 28
+
+TOK_TABLE	= 29
+TOK_BRANK	= 30
+TOK_PLAIN	= 31
 
 #------------------------------------------------------------------------------
 # Class .md parser
@@ -68,6 +71,8 @@ class mdParseClass:
 		self.toks.append(mdToken(r"^\s*=+()\s*$", TOK_SETEXH1))	# setex h1
 		self.toks.append(mdToken(r"^\s*([_\-\*])\s*\1\s*\1\s*\1*$", TOK_HR))	# hr
 
+		self.toks.append(mdToken(r"^\s{,4}######\s*(.*)[#\s\t]*$", TOK_ATHXH6))	# atx h6
+		self.toks.append(mdToken(r"^\s{,4}#####\s*(.*)[#\s\t]*$", TOK_ATHXH5))	# atx h5
 		self.toks.append(mdToken(r"^\s{,4}####\s*(.*)[#\s\t]*$", TOK_ATHXH4))	# atx h4
 		self.toks.append(mdToken(r"^\s{,4}###\s*(.*)[#\s\t]*$", TOK_ATHXH3))	# atx h3
 		self.toks.append(mdToken(r"^\s{,4}##\s*(.*)[#\s\t]*$", TOK_ATHXH2))	# atx h2
@@ -174,7 +179,7 @@ class md2HTML:
 							i += self.numlist(lines[i+1:], s) + 1
 							break
 						elif (tt < t):	# less level
-							break;
+                                                        s.append("</ol>\n")
 
 					elif (tt == TOK_BRANK):
 						s.append("<br>\n")
@@ -182,7 +187,6 @@ class md2HTML:
 					elif (tt >= TOK_LSTSPC0 and tt <= TOK_LSTTAB4):
 						if (tt > (t-9)): # more deeper
 							i += self.disklist(lines[i:], s) + 1
-							break
 						else:
 							break;
 
@@ -218,7 +222,7 @@ class md2HTML:
 							i += self.disklist(lines[i+1:], s) + 1
 							break
 						elif (tt < t):	# less level
-							break;
+                                                        s.append("</ul>\n")
 
 					elif (tt == TOK_BRANK):
 						s.append("<br>\n")
@@ -226,7 +230,6 @@ class md2HTML:
 					elif (tt >= TOK_NLSTSPC0 and tt <= TOK_NLSTTAB4):
 						if (tt > (t+9)): # more deeper
 							i += self.numlist(lines[i+1:], s) + 1
-							break
 						else:
 							break
 
@@ -303,7 +306,6 @@ class md2HTML:
 
 
 	def tableblock(self, lines, s):
-
 		i = 0
 
 		tcn = 0
@@ -311,32 +313,33 @@ class md2HTML:
 		tdn = 0
 
 		l, v, t = lines[i]		# table headers 
-		th = re.split(r"\|", l)[1:]
-		thn = len(th) - 1
-#		s.append("thn:" + str(th) + str(thn))
+                th = re.split(r"\|", l)[1:-1]   # take slices
+		thn = len(th)
+		# s.append("thn:" + str(th) + str(thn))
 
-		if (i+2 < len(lines)):		# table columns
+		if (i+2 < len(lines)):		# table column format check
 			l, v, t = lines[i+1]
 			tcn = len(re.split(r"-{3,}\|", l)) - 1
-#			s.append("tcn:" + str(tcn))
+			#s.append("tcn:" + str(tcn))
+                else:
+                    return 0
 
 		if (thn == tcn):		# if number of header and columns are same
 			s.append("<table>\n")
 			s.append("<tr>\n")
 
-			for val in th:
+			for val in th:          # table column
 				s.append("<th>" + val + "</th>\n")
 
 			s.append("</tr>\n")
 
-			i += 2
-
+			i += 2                  # table data
 			s.append("<tr>\n")
 
 			while (i < len(lines)):
 				l, v, t = lines[i]
-				td = re.split(r"\|", l)[1:]
-				tdn = len(td) - 1
+				td = re.split(r"\|", l)[1:-1]
+				tdn = len(td)
 				
 				if (thn == tdn):
 					for val in td:
@@ -346,8 +349,10 @@ class md2HTML:
 
 				i += 1
 
-
 			s.append("</tr>\n")
+
+                else:
+                    return 0
 
 #
 #		# TR
@@ -396,6 +401,12 @@ class md2HTML:
 
 			if (t == TOK_ATHXH4):
 				htmlbuf.append("<h4>" + self.line2html(v) + "</h4>\n")
+
+			if (t == TOK_ATHXH5):
+				htmlbuf.append("<h5>" + self.line2html(v) + "</h5>\n")
+
+			if (t == TOK_ATHXH6):
+				htmlbuf.append("<h6>" + self.line2html(v) + "</h6>\n")
 
 			if (t == TOK_PRE1):	# quoted pre block
 				if (i+1 < len(lines)):
@@ -474,9 +485,11 @@ class frame_1(wx.Frame):
 		self.SetMenuBar(self.frame_1_menubar)
 		# Menu Bar end
 
+                # Events
+                self.html_1.Bind(wx.EVT_KEY_DOWN, self.html1_onKeyPress)
+
 		self.__set_properties()
 		self.__do_layout()
-		# end wxGlade
 
 	def __set_properties(self):
 		# begin wxGlade: frame_1.__set_properties
@@ -494,6 +507,11 @@ class frame_1(wx.Frame):
 		self.SetSizer(sizer_1)
 		self.Layout()
 		# end wxGlade
+
+        def html1_onKeyPress(self, ev):     # WebView keypress event handler
+                keycode = ev.GetKeyCode()
+                print keycode
+                ev.Skip
 
 #------------------------------------------------------------------------------
 # Main
