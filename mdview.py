@@ -41,9 +41,20 @@ TOK_LSTTAB2	= 15
 TOK_LSTTAB3	= 16
 TOK_LSTTAB4	= 17
 
-TOK_LSTDD	= 18
-TOK_BRANK	= 19
-TOK_PLAIN	= 20
+TOK_NLSTSPC0	= 18
+TOK_NLSTSPC1	= 19
+TOK_NLSTSPC2	= 20
+TOK_NLSTSPC3	= 21
+TOK_NLSTSPC4	= 22
+
+TOK_NLSTTAB1	= 23
+TOK_NLSTTAB2	= 24
+TOK_NLSTTAB3	= 25
+TOK_NLSTTAB4	= 26
+
+TOK_TABLE	= 27
+TOK_BRANK	= 28
+TOK_PLAIN	= 29
 
 #------------------------------------------------------------------------------
 # Class .md parser
@@ -53,32 +64,44 @@ class mdParseClass:
 		self.toks = []
 
 		# ^^^^^ Upper is match high priolity ^^^^^
-		self.toks.append(mdToken(r"^\s*-+()\s*$",		TOK_SETEXH2))	# setex h2
-		self.toks.append(mdToken(r"^\s*=+()\s*$",		TOK_SETEXH1))	# setex h1
+		self.toks.append(mdToken(r"^\s*-+()\s*$", TOK_SETEXH2))	# setex h2
+		self.toks.append(mdToken(r"^\s*=+()\s*$", TOK_SETEXH1))	# setex h1
 		self.toks.append(mdToken(r"^\s*([_\-\*])\s*\1\s*\1\s*\1*$", TOK_HR))	# hr
 
-		self.toks.append(mdToken(r"^\s{,4}####\s*(.*)#*$",	TOK_ATHXH4))	# atx h4
-		self.toks.append(mdToken(r"^\s{,4}###\s*(.*)#*$",	TOK_ATHXH3))	# atx h3
-		self.toks.append(mdToken(r"^\s{,4}##\s*(.*)#*$",	TOK_ATHXH2))	# atx h2
-		self.toks.append(mdToken(r"^\s{,4}#\s*(.*)#*$",		TOK_ATHXH1))	# atx h1
+		self.toks.append(mdToken(r"^\s{,4}####\s*(.*)[#\s\t]*$", TOK_ATHXH4))	# atx h4
+		self.toks.append(mdToken(r"^\s{,4}###\s*(.*)[#\s\t]*$", TOK_ATHXH3))	# atx h3
+		self.toks.append(mdToken(r"^\s{,4}##\s*(.*)[#\s\t]*$", TOK_ATHXH2))	# atx h2
+		self.toks.append(mdToken(r"^\s{,4}#\s*(.*)[#\s\t]*$",	TOK_ATHXH1))	# atx h1
 
-		self.toks.append(mdToken(r"^[\*\-\+][\s\t]+(.*)$",		TOK_LSTSPC0))	# disk list
-		self.toks.append(mdToken(r"^\t[\*\-\+][\s\t]+(.*)$",		TOK_LSTTAB1))	# disk list
-		self.toks.append(mdToken(r"^\s[\*\-\+][\s\t]+(.*)$",		TOK_LSTSPC1))	# disk list
-		self.toks.append(mdToken(r"^\t\t[\*\-\+][\s\t]+(.*)$",	TOK_LSTTAB2))	# disk list
-		self.toks.append(mdToken(r"^\s\s[\*\-\+][\s\t]+(.*)$",	TOK_LSTSPC2))	# disk list
-		self.toks.append(mdToken(r"^\t\t\t[\*\-\+][\s\t]+(.*)$",	TOK_LSTTAB3))	# disk list
-		self.toks.append(mdToken(r"^\s\s\s[\*\-\+][\s\t]+(.*)$",	TOK_LSTSPC3))	# disk list
-		self.toks.append(mdToken(r"^\t\t\t\t[\*\-\+][\s\t]+(.*)$",	TOK_LSTTAB4))	# disk list
-		self.toks.append(mdToken(r"^\s\s\s\s[\*\-\+][\s\t]+(.*)$",	TOK_LSTSPC4))	# disk list
 
-#		self.toks.append(mdToken(r"^\s{,4}[\*|\-|\+]\s*(.*)$"	TOK_LSTDD))	# disk list (DD)
+		self.toks.append(mdToken(r"^[0-9]+\.[\s\t]+(.*)$", TOK_NLSTSPC0))		# num list
+		self.toks.append(mdToken(r"^\t[0-9]+\.[\s\t]+(.*)$", TOK_NLSTTAB1))		# num list
+		self.toks.append(mdToken(r"^\s[0-9]+\.[\s\t]+(.*)$", TOK_NLSTSPC1))		# num list
+		self.toks.append(mdToken(r"^\t\t[0-9]+\.[\s\t]+(.*)$", TOK_NLSTTAB2))		# num list
+		self.toks.append(mdToken(r"^\s\s[0-9]+\.[\s\t]+(.*)$", TOK_NLSTSPC2))		# num list
+		self.toks.append(mdToken(r"^\t\t\t[0-9]+\.[\s\t]+(.*)$", TOK_NLSTTAB3))		# num list
+		self.toks.append(mdToken(r"^\s\s\s[0-9]+\.[\s\t]+(.*)$", TOK_NLSTSPC3))		# num list
+		self.toks.append(mdToken(r"^\t\t\t\t[0-9]+\.[\s\t]+(.*)$", TOK_NLSTTAB4))	# num list
+		self.toks.append(mdToken(r"^\s\s\s\s[0-9]+\.[\s\t]+(.*)$", TOK_NLSTSPC4))	# num list
+
+		self.toks.append(mdToken(r"^[\*\-\+][\s\t]+(.*)$", TOK_LSTSPC0))		# disk list
+		self.toks.append(mdToken(r"^\t[\*\-\+][\s\t]+(.*)$", TOK_LSTTAB1))		# disk list
+		self.toks.append(mdToken(r"^\s[\*\-\+][\s\t]+(.*)$", TOK_LSTSPC1))		# disk list
+		self.toks.append(mdToken(r"^\t\t[\*\-\+][\s\t]+(.*)$", TOK_LSTTAB2))		# disk list
+		self.toks.append(mdToken(r"^\s\s[\*\-\+][\s\t]+(.*)$", TOK_LSTSPC2))		# disk list
+		self.toks.append(mdToken(r"^\t\t\t[\*\-\+][\s\t]+(.*)$", TOK_LSTTAB3))		# disk list
+		self.toks.append(mdToken(r"^\s\s\s[\*\-\+][\s\t]+(.*)$", TOK_LSTSPC3))		# disk list
+		self.toks.append(mdToken(r"^\t\t\t\t[\*\-\+][\s\t]+(.*)$", TOK_LSTTAB4))	# disk list
+		self.toks.append(mdToken(r"^\s\s\s\s[\*\-\+][\s\t]+(.*)9", TOK_LSTSPC4))	# disk list
+
+		self.toks.append(mdToken(r"^\s{,4}\|(.*)\|[\s\t]*$", TOK_TABLE))	# table
 
 		self.toks.append(mdToken(r"^\s{,4}```s*(.*)$",		TOK_PRE1))	# pre 1
-		self.toks.append(mdToken(r"^\t{2,}s*(.*)$",		TOK_PRE2))	# pre 2
+		self.toks.append(mdToken(r"^\s{4}(.*)$",		TOK_PRE2))	# pre 2
 
 		self.toks.append(mdToken(r"^\n()$",			TOK_BRANK))	# brank
 		self.toks.append(mdToken(r"^.*$",			TOK_PLAIN))	# plain
+
 
 		for t in self.toks:	# compile all regex patterns
 			t.compile()
@@ -132,19 +155,63 @@ class md2HTML:
 
 		return s.rstrip('\n\r')
 
+	def numlist(self, lines, s):
+		i = 0
+		s.append("<ol>\n")
+
+		while (i < len(lines)):
+			l, v, t = lines[i]	# current
+
+			if ((t >= TOK_NLSTSPC0 and t <= TOK_NLSTTAB4) or t == TOK_BRANK):
+				if (i+1 < len(lines)):
+					if (t != TOK_BRANK):
+						s.append("<li>" + self.line2html(v) + "</li>\n")
+
+					ll, vv, tt = lines[i+1]	# lookup next level
+
+					if (tt >= TOK_NLSTSPC0 and tt <= TOK_NLSTTAB4):
+						if (tt > t):	# deeper level
+							i += self.numlist(lines[i+1:], s) + 1
+							break
+						elif (tt < t):	# less level
+							break;
+
+					elif (tt == TOK_BRANK):
+						s.append("<br>\n")
+
+					elif (tt >= TOK_LSTSPC0 and tt <= TOK_LSTTAB4):
+						if (tt > (t-9)): # more deeper
+							i += self.disklist(lines[i:], s) + 1
+							break
+						else:
+							break;
+
+					else:
+						break
+
+			else:
+				break
+
+			i += 1
+
+		s.append("</ol>\n")
+		
+		return i
+
+
 	def disklist(self, lines, s):
 		i = 0
 		s.append("<ul>\n")
 
 		while (i < len(lines)):
-			l, v, t = lines[i]			# current
+			l, v, t = lines[i]	# current
 
 			if ((t >= TOK_LSTSPC0 and t <= TOK_LSTTAB4) or t == TOK_BRANK):
 				if (i+1 < len(lines)):
 					if (t != TOK_BRANK):
 						s.append("<li>" + self.line2html(v) + "</li>\n")
 
-					ll, vv, tt = lines[i+1]		# lookup next level
+					ll, vv, tt = lines[i+1]	# lookup next level
 
 					if (tt >= TOK_LSTSPC0 and tt <= TOK_LSTTAB4):
 						if (tt > t):	# deeper level
@@ -156,8 +223,16 @@ class md2HTML:
 					elif (tt == TOK_BRANK):
 						s.append("<br>\n")
 
+					elif (tt >= TOK_NLSTSPC0 and tt <= TOK_NLSTTAB4):
+						if (tt > (t+9)): # more deeper
+							i += self.numlist(lines[i+1:], s) + 1
+							break
+						else:
+							break
+
 					else:
 						break
+
 			else:
 				break
 
@@ -183,30 +258,122 @@ class md2HTML:
 		s.append("</p>\n")
 
 		return i
+
 	
-	def preblock(self, lines, s):
+	def quotedpreblock(self, lines, s):
 		i = 0
 		s.append("<pre>\n")
 
 		while (i < len(lines)):
 			l, v, t = lines[i]
+
 			if (t == TOK_PRE1):
 				i += 1
 				break
+
 			else:
 				s.append(l + "\n")
+
 			i += 1
 
 		s.append("</pre>\n")
 
 		return i
 
+
+	def spacedpreblock(self, lines, s):
+		i = 0
+		s.append("<pre>\n")
+
+		while (i < len(lines)):
+			l, v, t = lines[i]
+
+			if (t == TOK_PRE2):
+				s.append(l + "\n")
+
+			else:
+				i -= 1
+				break
+
+			i += 1
+
+		s.append("</pre>\n")
+
+		return i
+
+
+	def tableblock(self, lines, s):
+
+		i = 0
+
+		tcn = 0
+		thn = 0
+		tdn = 0
+
+		l, v, t = lines[i]		# table headers 
+		th = re.split(r"\|", l)[1:]
+		thn = len(th) - 1
+#		s.append("thn:" + str(th) + str(thn))
+
+		if (i+2 < len(lines)):		# table columns
+			l, v, t = lines[i+1]
+			tcn = len(re.split(r"-{3,}\|", l)) - 1
+#			s.append("tcn:" + str(tcn))
+
+		if (thn == tcn):		# if number of header and columns are same
+			s.append("<table>\n")
+			s.append("<tr>\n")
+
+			for val in th:
+				s.append("<th>" + val + "</th>\n")
+
+			s.append("</tr>\n")
+
+			i += 2
+
+			s.append("<tr>\n")
+
+			while (i < len(lines)):
+				l, v, t = lines[i]
+				td = re.split(r"\|", l)[1:]
+				tdn = len(td) - 1
+				
+				if (thn == tdn):
+					for val in td:
+						s.append("<td>" + val + "</td>\n")
+				else:
+					break
+
+				i += 1
+
+
+			s.append("</tr>\n")
+
+#
+#		# TR
+#
+#		while (i < len(lines)):
+#			l, v, t = lines[i]
+#
+#			if (t == TOK_TABLE):
+#				s.append(l + "\n")
+#
+#			else:
+#				i -= 1
+#				break
+#
+#			i += 1
+#
+		s.append("</table>\n")
+
+		return i
+
+
 	def toHtml(self, lines):
 		htmlbuf = []
 		self.appendHeader(htmlbuf)			# Append header
 
 		i = 0
-		block = False					# Block code enable
 
 		while (i < len(lines)):
 
@@ -214,36 +381,46 @@ class md2HTML:
 
 			if (t == TOK_HR):			# Holizontal line
 				htmlbuf.append("<hr>\n")
-				block = False
 
 			if (t == TOK_SETEXH1 or t == TOK_SETEXH2):
 				htmlbuf.append("<hr>\n")
-				block = False
 
 			if (t == TOK_ATHXH1):
 				htmlbuf.append("<h1>" + self.line2html(v) + "</h1>\n")
-				block = False
 
 			if (t == TOK_ATHXH2):
 				htmlbuf.append("<h2>" + self.line2html(v) + "</h2>\n")
-				block = False
 
 			if (t == TOK_ATHXH3):
 				htmlbuf.append("<h3>" + self.line2html(v) + "</h3>\n")
-				block = False
 
 			if (t == TOK_ATHXH4):
 				htmlbuf.append("<h4>" + self.line2html(v) + "</h4>\n")
-				block = False
 
-			if (t == TOK_PRE1):			# Block preview
+			if (t == TOK_PRE1):	# quoted pre block
 				if (i+1 < len(lines)):
-					i += self.preblock(lines[i+1:], htmlbuf)
+					i += self.quotedpreblock(lines[i+1:], htmlbuf)
 				else:	# EOF
-					htmlbuf.append("<p>" + self.line2html(l) + "</p>\n")
+					htmlbuf.append("<pre>" + self.line2html(l) + "</pre>\n")
 
-			if (t >= TOK_LSTSPC0 and t <= TOK_LSTTAB4):		# TAB List
+			if (t == TOK_PRE2):	# spaced pre block
+				if (i+1 < len(lines)):
+					i += self.spacedpreblock(lines[i:], htmlbuf)
+				else:	# EOF
+					htmlbuf.append("<pre>" + self.line2html(l) + "</pre>\n")
+
+
+			if (t >= TOK_LSTSPC0 and t <= TOK_LSTTAB4):	# Disk list
 				i += self.disklist(lines[i:], htmlbuf)
+
+			if (t >= TOK_NLSTSPC0 and t <= TOK_NLSTTAB4):	# Num list
+				i += self.numlist(lines[i:], htmlbuf)
+
+			if (t == TOK_TABLE):
+				if (i+1 < len(lines)):
+					i += self.tableblock(lines[i:], htmlbuf)
+				else:
+					htmlbuf.append("<p>" + self.line2html(l) + "</p>\n")
 
 			if (t == TOK_PLAIN):
 				if (i+1 < len(lines)):		# Look ahead..
