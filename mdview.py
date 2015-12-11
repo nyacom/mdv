@@ -18,7 +18,7 @@ import math
 # import frame1
 
 #------------------------------------------------------------------------------
-# Valuables
+# Constant values
 #------------------------------------------------------------------------------
 TOK_HR		= 0
 TOK_PRE1	= 1
@@ -245,6 +245,7 @@ class md2HTML:
 		
 		return i
 
+
 	def paragraph(self, lines, s):
 		i = 0
 		s.append("<p>")
@@ -305,6 +306,25 @@ class md2HTML:
 		return i
 
 
+	def tablealign(self, tc):
+		align = []
+
+		for td in tc:
+			if (re.search(r":---*:", td)):
+				align.append("center")
+
+			elif (re.search(r":---", td)):
+				align.append("left")
+
+			elif (re.search(r"---:", td)):
+				align.append("right")
+
+			else:
+				align.append("left")
+
+		return align
+
+				
 	def tableblock(self, lines, s):
 		i = 0
 
@@ -312,47 +332,86 @@ class md2HTML:
 		thn = 0
 		tdn = 0
 
-		l, v, t = lines[i]		# table headers 
-                th = re.split(r"\|", l)[1:-1]   # take slices
-		thn = len(th)
-		# s.append("thn:" + str(th) + str(thn))
+		align = []
+		tablehr = []	# Table header
 
-		if (i+2 < len(lines)):		# table column format check
-			l, v, t = lines[i+1]
-			tcn = len(re.split(r"-{3,}\|", l)) - 1
-			#s.append("tcn:" + str(tcn))
-                else:
-                    return 0
+		# Header
+		if (i+1 >= len(lines)):
+			l, v, t = lines[i]	# 1st table line should be header or setting
+			s.append("<p>" + self.line2html(l) + "</p>\n")
+			return 0	# not sufficient lines left for table
 
-		if (thn == tcn):		# if number of header and columns are same
-			s.append("<table>\n")
-			s.append("<tr>\n")
+		l, v, t = lines[i]	# 1st table line should be header or setting
+		tc = re.split(r"\|", l)[1:-1]   # take slice
+		tcl = len(tc)
 
-			for val in th:          # table column
-				s.append("<th>" + val + "</th>\n")
-
-			s.append("</tr>\n")
-
-			i += 2                  # table data
-			s.append("<tr>\n")
-
-			while (i < len(lines)):
-				l, v, t = lines[i]
-				td = re.split(r"\|", l)[1:-1]
-				tdn = len(td)
+		if (re.search(r":*---:*\|", l)):	# Setting line
+			s.append("sc:" + str(tc) + str(tcl))
+			align = self.tablealign(tc)
 				
-				if (thn == tdn):
-					for val in td:
-						s.append("<td>" + val + "</td>\n")
-				else:
-					break
+		else:					# Column header
+			s.append("tc:" + str(tc) + str(tcl))
+			ll, vv, tt = lines[i+1]	# 2st line should be header or setting
 
-				i += 1
+			if (tt != TOK_TABLE):	
+				return 0
 
-			s.append("</tr>\n")
+			tc = re.split(r"\|", ll)[1:-1]   # take slice
+			tcl = len(tc)
 
-                else:
-                    return 0
+			if (re.search(r":*---:*\|", ll)):	# Setting line
+				s.append("sc:" + str(tc) + str(tcl))
+				align = self.tablealign(tc)
+
+		else:
+			return 0
+			
+		# line 0
+		l, v, t = lines[i]		# table headers 
+                tc = re.split(r"\|", l)[1:-1]   # take slices
+		tcl = len(tc)
+
+		if (re.search(r":*---:*\|", l)):	# Setting line
+			i += 1
+			l, v, t = lines[i]		# table headers 
+			th = re.split(r"\|", l)[1:-1]   # take slices
+			thn = len(th)
+
+			if (t != TOK_TABLE):	
+				return 0
+		
+
+		s.append("<table>\n")
+		s.append("<tr>\n")
+
+		for val in th:          # table column
+			s.append("<th>" + val + "</th>\n")
+
+		s.append("</tr>\n")
+
+		l, v, t = lines[i+1]	# table headers 
+
+		if (t != TOK_TABLE):	
+			return 0
+
+		i += 2                  # table data
+		s.append("<tr>\n")
+
+		while (i < len(lines)):
+			l, v, t = lines[i]
+			td = re.split(r"\|", l)[1:-1]
+			tdn = len(td)
+			
+			if (thn == tdn):
+				for val in td:
+					s.append("<td>" + val + "</td>\n")
+			else:
+				break
+
+			i += 1
+
+		s.append("</tr>\n")
+
 
 #
 #		# TR
@@ -369,9 +428,9 @@ class md2HTML:
 #
 #			i += 1
 #
-		s.append("</table>\n")
+#		s.append("</table>\n")
 
-		return i
+		return 0
 
 
 	def toHtml(self, lines):
@@ -428,10 +487,7 @@ class md2HTML:
 				i += self.numlist(lines[i:], htmlbuf)
 
 			if (t == TOK_TABLE):
-				if (i+1 < len(lines)):
-					i += self.tableblock(lines[i:], htmlbuf)
-				else:
-					htmlbuf.append("<p>" + self.line2html(l) + "</p>\n")
+				i += self.tableblock(lines[i:], htmlbuf)
 
 			if (t == TOK_PLAIN):
 				if (i+1 < len(lines)):		# Look ahead..
