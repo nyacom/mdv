@@ -56,8 +56,12 @@ TOK_NLSTTAB3	= 27
 TOK_NLSTTAB4	= 28
 
 TOK_TABLE	= 29
-TOK_BRANK	= 30
-TOK_PLAIN	= 31
+TOK_QUOTE	= 30
+
+TOK_REF		= 31
+
+TOK_BRANK	= 32
+TOK_PLAIN	= 33
 
 #------------------------------------------------------------------------------
 # Class .md parser
@@ -67,45 +71,49 @@ class mdParseClass:
 		self.toks = []
 
 		# ^^^^^ Upper is match high priolity ^^^^^
-		self.toks.append(mdToken(r"^\s*-+()\s*$", TOK_SETEXH2))	# setex h2
-		self.toks.append(mdToken(r"^\s*=+()\s*$", TOK_SETEXH1))	# setex h1
-		self.toks.append(mdToken(r"^\s*([_\-\*])\s*\1\s*\1\s*\1*$", TOK_HR))	# hr
+		self.toks.append(mdToken(r'^\s*-+()\s*$', TOK_SETEXH2))	# setex h2
+		self.toks.append(mdToken(r'^\s*=+()\s*$', TOK_SETEXH1))	# setex h1
+		self.toks.append(mdToken(r'^\s*([_\-\*])\s*\1\s*\1\s*\1*$', TOK_HR))	# hr
 
-		self.toks.append(mdToken(r"^\s{,4}######\s*(.*)[#\s\t]*$", TOK_ATHXH6))	# atx h6
-		self.toks.append(mdToken(r"^\s{,4}#####\s*(.*)[#\s\t]*$", TOK_ATHXH5))	# atx h5
-		self.toks.append(mdToken(r"^\s{,4}####\s*(.*)[#\s\t]*$", TOK_ATHXH4))	# atx h4
-		self.toks.append(mdToken(r"^\s{,4}###\s*(.*)[#\s\t]*$", TOK_ATHXH3))	# atx h3
-		self.toks.append(mdToken(r"^\s{,4}##\s*(.*)[#\s\t]*$", TOK_ATHXH2))	# atx h2
-		self.toks.append(mdToken(r"^\s{,4}#\s*(.*)[#\s\t]*$",	TOK_ATHXH1))	# atx h1
+		self.toks.append(mdToken(r'^\s{,4}######\s*(.*)[#\s\t]*$', TOK_ATHXH6))	# atx h6
+		self.toks.append(mdToken(r'^\s{,4}#####\s*(.*)[#\s\t]*$', TOK_ATHXH5))	# atx h5
+		self.toks.append(mdToken(r'^\s{,4}####\s*(.*)[#\s\t]*$', TOK_ATHXH4))	# atx h4
+		self.toks.append(mdToken(r'^\s{,4}###\s*(.*)[#\s\t]*$', TOK_ATHXH3))	# atx h3
+		self.toks.append(mdToken(r'^\s{,4}##\s*(.*)[#\s\t]*$', TOK_ATHXH2))	# atx h2
+		self.toks.append(mdToken(r'^\s{,4}#\s*(.*)[#\s\t]*$',	TOK_ATHXH1))	# atx h1
 
 
-		self.toks.append(mdToken(r"^[0-9]+\.[\s\t]+(.*)$", TOK_NLSTSPC0))		# num list
-		self.toks.append(mdToken(r"^\t[0-9]+\.[\s\t]+(.*)$", TOK_NLSTTAB1))		# num list
-		self.toks.append(mdToken(r"^\s[0-9]+\.[\s\t]+(.*)$", TOK_NLSTSPC1))		# num list
-		self.toks.append(mdToken(r"^\t\t[0-9]+\.[\s\t]+(.*)$", TOK_NLSTTAB2))		# num list
-		self.toks.append(mdToken(r"^\s\s[0-9]+\.[\s\t]+(.*)$", TOK_NLSTSPC2))		# num list
-		self.toks.append(mdToken(r"^\t\t\t[0-9]+\.[\s\t]+(.*)$", TOK_NLSTTAB3))		# num list
-		self.toks.append(mdToken(r"^\s\s\s[0-9]+\.[\s\t]+(.*)$", TOK_NLSTSPC3))		# num list
-		self.toks.append(mdToken(r"^\t\t\t\t[0-9]+\.[\s\t]+(.*)$", TOK_NLSTTAB4))	# num list
-		self.toks.append(mdToken(r"^\s\s\s\s[0-9]+\.[\s\t]+(.*)$", TOK_NLSTSPC4))	# num list
+		self.toks.append(mdToken(r'^[0-9]+\.[\s\t]+(.*)$', TOK_NLSTSPC0))		# num list
+		self.toks.append(mdToken(r'^\t[0-9]+\.[\s\t]+(.*)$', TOK_NLSTTAB1))		# num list
+		self.toks.append(mdToken(r'^\s[0-9]+\.[\s\t]+(.*)$', TOK_NLSTSPC1))		# num list
+		self.toks.append(mdToken(r'^\t\t[0-9]+\.[\s\t]+(.*)$', TOK_NLSTTAB2))		# num list
+		self.toks.append(mdToken(r'^\s\s[0-9]+\.[\s\t]+(.*)$', TOK_NLSTSPC2))		# num list
+		self.toks.append(mdToken(r'^\t\t\t[0-9]+\.[\s\t]+(.*)$', TOK_NLSTTAB3))		# num list
+		self.toks.append(mdToken(r'^\s\s\s[0-9]+\.[\s\t]+(.*)$', TOK_NLSTSPC3))		# num list
+		self.toks.append(mdToken(r'^\t\t\t\t[0-9]+\.[\s\t]+(.*)$', TOK_NLSTTAB4))	# num list
+		self.toks.append(mdToken(r'^\s\s\s\s[0-9]+\.[\s\t]+(.*)$', TOK_NLSTSPC4))	# num list
 
-		self.toks.append(mdToken(r"^[\*\-\+][\s\t]+(.*)$", TOK_LSTSPC0))		# disk list
-		self.toks.append(mdToken(r"^\t[\*\-\+][\s\t]+(.*)$", TOK_LSTTAB1))		# disk list
-		self.toks.append(mdToken(r"^\s[\*\-\+][\s\t]+(.*)$", TOK_LSTSPC1))		# disk list
-		self.toks.append(mdToken(r"^\t\t[\*\-\+][\s\t]+(.*)$", TOK_LSTTAB2))		# disk list
-		self.toks.append(mdToken(r"^\s\s[\*\-\+][\s\t]+(.*)$", TOK_LSTSPC2))		# disk list
-		self.toks.append(mdToken(r"^\t\t\t[\*\-\+][\s\t]+(.*)$", TOK_LSTTAB3))		# disk list
-		self.toks.append(mdToken(r"^\s\s\s[\*\-\+][\s\t]+(.*)$", TOK_LSTSPC3))		# disk list
-		self.toks.append(mdToken(r"^\t\t\t\t[\*\-\+][\s\t]+(.*)$", TOK_LSTTAB4))	# disk list
-		self.toks.append(mdToken(r"^\s\s\s\s[\*\-\+][\s\t]+(.*)9", TOK_LSTSPC4))	# disk list
+		self.toks.append(mdToken(r'^[\*\-\+][\s\t]+(.*)$', TOK_LSTSPC0))		# disk list
+		self.toks.append(mdToken(r'^\t[\*\-\+][\s\t]+(.*)$', TOK_LSTTAB1))		# disk list
+		self.toks.append(mdToken(r'^\s[\*\-\+][\s\t]+(.*)$', TOK_LSTSPC1))		# disk list
+		self.toks.append(mdToken(r'^\t\t[\*\-\+][\s\t]+(.*)$', TOK_LSTTAB2))		# disk list
+		self.toks.append(mdToken(r'^\s\s[\*\-\+][\s\t]+(.*)$', TOK_LSTSPC2))		# disk list
+		self.toks.append(mdToken(r'^\t\t\t[\*\-\+][\s\t]+(.*)$', TOK_LSTTAB3))		# disk list
+		self.toks.append(mdToken(r'^\s\s\s[\*\-\+][\s\t]+(.*)$', TOK_LSTSPC3))		# disk list
+		self.toks.append(mdToken(r'^\t\t\t\t[\*\-\+][\s\t]+(.*)$', TOK_LSTTAB4))	# disk list
+		self.toks.append(mdToken(r'^\s\s\s\s[\*\-\+][\s\t]+(.*)$', TOK_LSTSPC4))	# disk list
 
-		self.toks.append(mdToken(r"^\s{,4}\|(.*)\|[\s\t]*$", TOK_TABLE))	# table
+		self.toks.append(mdToken(r'^\s{,4}\|(.*)\|[\s\t]*$', TOK_TABLE))	# table
+		self.toks.append(mdToken(r'^\s{,4}>(.*)$', TOK_QUOTE))			# quote
 
-		self.toks.append(mdToken(r"^\s{,4}```s*(.*)$",		TOK_PRE1))	# pre 1
-		self.toks.append(mdToken(r"^\s{4}(.*)$",		TOK_PRE2))	# pre 2
+		self.toks.append(mdToken(r'^\s{,4}```s*(.*)$',		TOK_PRE1))	# pre 1
+		self.toks.append(mdToken(r'^\s{4}(.*)$',		TOK_PRE2))	# pre 2
 
-		self.toks.append(mdToken(r"^\n()$",			TOK_BRANK))	# brank
-		self.toks.append(mdToken(r"^.*$",			TOK_PLAIN))	# plain
+		self.toks.append(mdToken(r'^\s{,4}\[(.*)\]:.*$',		TOK_REF))	# ref
+		self.toks.append(mdToken(r'^\s{,4}\[(.*)\]:.*\s+".*"$',		TOK_REF))	# ref
+
+		self.toks.append(mdToken(r'^\n()$',			TOK_BRANK))	# brank
+		self.toks.append(mdToken(r'^.*$',			TOK_PLAIN))	# plain
 
 
 		for t in self.toks:	# compile all regex patterns
@@ -141,22 +149,65 @@ class mdToken:
 # Device context class
 #------------------------------------------------------------------------------
 class md2HTML:
+	def __init__(self):
+		self.css = ""
+		self.ref = {}	# reference dict
 
 	def appendHeader(self, s):
 		s.append('<html>\n')
 		s.append('<head>\n')
-		s.append('<link rel="stylesheet" type="text/css" href="default.css">\n')
+
+		s.append('<style type="text/css">\n')
+		s.append('<!--\n')
+		s.append(self.css)
+		s.append('-->\n')
+		s.append('</style>\n')
+
+		#s.append('<link rel="stylesheet" type="text/css" href="default.css">\n')
 		s.append('</head>\n')
 
+	def refline2html(self, m):
+		if (m.lastindex > 1):
+			return r'<a href="' + self.ref[m.group(2)] + '">' + m.group(1) + '</a>'
+
+		return r'<a href="' + self.ref[m.group(1)] + '">' + m.group(1) + '</a>'
+
+	def imgrefline2html(self, m):
+		if (m.lastindex > 2):
+			return r'<img src="' + self.ref[m.group(1)] + '"' + m.group(2) + '>'
+
+		return r'<img src="' + self.ref[m.group(1)] + '">'
+		
+
 	def line2html(self, s):
-		s = re.sub(r"\\[#*-_+](.*)", 		r'\1', s)	# escape
-		s = re.sub(r"\s__(.*)__(\s|$)", 	r' <strong>\1</strong>', s)	# bold
-		s = re.sub(r"\s\*\*(.*)\*\*(\s|$)", 	r' <strong>\1</strong>', s)	# bold
-		s = re.sub(r"\s_(.*)_(\s|$)", 		r' <em>\1</em>', s)		# italic
-		s = re.sub(r"\s\*(.*)*(\s|$)", 		r' <em>\1</em>', s)		# italic
-		s = re.sub(r"\s\`(.*)\`(\s|$)",		r' <code>\1</code>', s)		# code
-		s = re.sub(r"\s~~(.*)~~(\s|$)", 	r' <s>\1</s>', s)		# strike
-		s = re.sub(r"\s\s$", 			r' <br>\n', s)			# nr
+		s = re.sub(r'\\[#*-_+](.*)', 		r'\1', s)	# escape
+
+		s = re.sub(r'<(http://.*)>(\s|$)',		r'<a href="\1" target="_blank">\1</a>', s)		# auto link (URI)
+		s = re.sub(r'<(.*@.*)>(\s|$)',			r'<a href="mailto:\1" target="_blank">\1</a>', s)	# auto link (mail)
+
+		s = re.sub(r'!\[(.*)@(.*)\]\((.*)\s+"(.*)"\)(\s|$)',	r'<img src="\3" alt="\1" title="\4" \2', s)	# img with name and tag
+		s = re.sub(r'!\[(.*)\]\((.*)\s+"(.*)"\)(\s|$)',		r'<img src="\2" alt="\1" title="\3">', s)	# img with name
+
+		s = re.sub(r'!\[(.*)@(.*)\]\((.*)\)(\s|$)',		r'<img src="\3" \2>', s)		# img
+		s = re.sub(r'!\[(.*)\]\((.*)\)(\s|$)',			r'<img src="\2">', s)			# img
+
+		s = re.sub(r'!\[(.*)@(.*)\](\s|$)',		self.imgrefline2html, s)			# img with ref
+		s = re.sub(r'!\[(.*)\](\s|$)',			self.imgrefline2html, s)			# img with ref
+		s = re.sub(r'!\[(.*)\](\s|$)',			self.imgrefline2html, s)			# img with ref
+
+		s = re.sub(r'\[(.*)\]\((.*)\s+"(.*)"\)(\s|$)',	r'<a href="\2" target="_blank" title="\3">\1</a>', s)	# link with name
+		s = re.sub(r'\[(.*)\]\((.*)\)(\s|$)',		r'<a href="\2" target="_blank">\1</a>', s)	# link
+
+		s = re.sub(r'\[(.*)\]\[\](\s|$)',		self.refline2html, s)	# ref link
+		s = re.sub(r'\[(.*)\]\[(.*)\](\s|$)',		self.refline2html, s)	# ref link
+
+		s = re.sub(r'\s__(.*)__(\s|$)', 	r'<strong>\1</strong>', s)	# bold
+		s = re.sub(r'\s\*\*(.*)\*\*(\s|$)', 	r'<strong>\1</strong>', s)	# bold
+		s = re.sub(r'\s_(.*)_(\s|$)', 		r'<em>\1</em>', s)		# italic
+		s = re.sub(r'\s\*(.*)*(\s|$)', 		r'<em>\1</em>', s)		# italic
+		s = re.sub(r'\s\`(.*)\`(\s|$)',		r'<code>\1</code>', s)		# code
+		s = re.sub(r'\s~~(.*)~~(\s|$)', 	r'<s>\1</s>', s)		# strike
+		s = re.sub(r'\s\s$', 			r'<br>\n', s)			# nr
 
 		return s.rstrip('\n\r')
 
@@ -327,118 +378,135 @@ class md2HTML:
 				
 	def tableblock(self, lines, s):
 		i = 0
-
-		tcn = 0
-		thn = 0
-		tdn = 0
-
 		align = []
-		tablehr = []	# Table header
 
-		# Header
+		# left lines are not sufficent to make a valid table
 		if (i+1 >= len(lines)):
-			l, v, t = lines[i]	# 1st table line should be header or setting
+			l, v, t = lines[i]
 			s.append("<p>" + self.line2html(l) + "</p>\n")
-			return 0	# not sufficient lines left for table
-
-		l, v, t = lines[i]	# 1st table line should be header or setting
-		tc = re.split(r"\|", l)[1:-1]   # take slice
-		tcl = len(tc)
-
-		if (re.search(r":*---:*\|", l)):	# Setting line
-			s.append("sc:" + str(tc) + str(tcl))
-			align = self.tablealign(tc)
-				
-		else:					# Column header
-			s.append("tc:" + str(tc) + str(tcl))
-			ll, vv, tt = lines[i+1]	# 2st line should be header or setting
-
-			if (tt != TOK_TABLE):	
-				return 0
-
-			tc = re.split(r"\|", ll)[1:-1]   # take slice
-			tcl = len(tc)
-
-			if (re.search(r":*---:*\|", ll)):	# Setting line
-				s.append("sc:" + str(tc) + str(tcl))
-				align = self.tablealign(tc)
+			return 1
 
 		else:
-			return 0
-			
-		# line 0
-		l, v, t = lines[i]		# table headers 
-                tc = re.split(r"\|", l)[1:-1]   # take slices
-		tcl = len(tc)
+			l, v, t = lines[i]
+			ll, vv, tt = lines[i+1]
 
-		if (re.search(r":*---:*\|", l)):	# Setting line
-			i += 1
-			l, v, t = lines[i]		# table headers 
-			th = re.split(r"\|", l)[1:-1]   # take slices
-			thn = len(th)
-
-			if (t != TOK_TABLE):	
-				return 0
-		
+			if (tt != TOK_TABLE):
+				s.append("<p>" + self.line2html(l) + "</p>\n")
+				s.append("<p>" + self.line2html(ll) + "</p>\n")
+				return 2
 
 		s.append("<table>\n")
-		s.append("<tr>\n")
-
-		for val in th:          # table column
-			s.append("<th>" + val + "</th>\n")
-
-		s.append("</tr>\n")
-
-		l, v, t = lines[i+1]	# table headers 
-
-		if (t != TOK_TABLE):	
-			return 0
-
-		i += 2                  # table data
-		s.append("<tr>\n")
 
 		while (i < len(lines)):
 			l, v, t = lines[i]
-			td = re.split(r"\|", l)[1:-1]
-			tdn = len(td)
-			
-			if (thn == tdn):
-				for val in td:
-					s.append("<td>" + val + "</td>\n")
-			else:
+
+			if (t != TOK_TABLE):
 				break
+
+
+			tc = re.split(r"\|", l)[1:-1]   # take slice
+			tcl = len(tc)
+
+			if (re.search(r":*---:*\|", l)):	# Table align line
+				# s.append("sc:" + str(tc) + str(tcl))
+				align = self.tablealign(tc)
+
+			else:					# normal line
+				s.append("<tr>\n")
+				# s.append("tc:" + str(tc) + str(tcl))
+
+				if (i == 0):	# if normal line and it is 1st line, the line is a header
+					j = 0
+					for v in tc:          # table header
+						a = align[j] if j < len(align) else "left"
+						s.append("<th align=" + a + ">" + v + "</th>\n")
+						j += 1
+
+				else:
+					j = 0
+					for v in tc:          # table content
+						a = align[j] if j < len(align) else "left"
+						s.append("<td align=" + a + ">" + v + "</td>\n")
+						j += 1
+
+				s.append("</tr>\n")
 
 			i += 1
 
-		s.append("</tr>\n")
+		s.append("</table>\n")
+
+		return i
 
 
-#
-#		# TR
-#
-#		while (i < len(lines)):
-#			l, v, t = lines[i]
-#
-#			if (t == TOK_TABLE):
-#				s.append(l + "\n")
-#
-#			else:
-#				i -= 1
-#				break
-#
-#			i += 1
-#
-#		s.append("</table>\n")
+	def blockquote(self, lv, lines, s):
+		i = 0
 
-		return 0
+		s.append("<blockquote>\n")
 
+		l, v, t = lines[i]
+		quot = re.split(r">", l)
+		llv = len(quot)
+
+		if (lv < llv):
+			i += self.blockquote(lv+1, lines[i:], s)
+
+		while (i < len(lines)):
+			l, v, t = lines[i]
+
+			if (t != TOK_QUOTE):
+				break
+
+			quot = re.split(r">", l)
+			llv = len(quot)
+
+			if (lv < llv):		# to deeper level
+				i += self.blockquote(lv+1, lines[i:], s)
+
+			elif (lv > llv):	# to upper level
+				i -= 1
+				break;
+
+			else:
+				s.append(self.line2html(quot[lv-1]) + "<br>\n")
+
+			i += 1
+
+		s.append("</blockquote>\n")
+
+		return i
+
+	def reference(self, l):
+
+		m = re.match(r'\[(.*)\]:(.*)\s+"(.*)"$', l)
+		if (m):
+			print m.group(0)
+			print m.group(1)
+			self.ref[m.group(1)] = m.group(2)
+
+
+		m = re.match(r'\[(.*)\]:(.*)$', l)
+		if (m):
+			self.ref[m.group(1)] = m.group(2)
+
+		return
+		
 
 	def toHtml(self, lines):
 		htmlbuf = []
 		self.appendHeader(htmlbuf)			# Append header
 
+		# refsearch
 		i = 0
+		while (i < len(lines)):
+			l, v, t = lines[i]
 
+			if (t == TOK_REF):
+				self.reference(l)
+
+			i += 1
+
+		# normal token
+		i = 0
 		while (i < len(lines)):
 
 			l, v, t = lines[i]
@@ -489,6 +557,9 @@ class md2HTML:
 			if (t == TOK_TABLE):
 				i += self.tableblock(lines[i:], htmlbuf)
 
+			if (t == TOK_QUOTE):
+				i += self.blockquote(1, lines[i:], htmlbuf)
+
 			if (t == TOK_PLAIN):
 				if (i+1 < len(lines)):		# Look ahead..
 					ll, vv, tt = lines[i+1]
@@ -512,9 +583,78 @@ class md2HTML:
 
 		htmlbuf.append("</html>\n")
 
-		print ''.join(htmlbuf)
+		#print ''.join(htmlbuf)
 
 		return ''.join(htmlbuf)
+
+#------------------------------------------------------------------------------
+# Main
+#------------------------------------------------------------------------------
+class mdview:
+	def __init__(self):
+		self.filename = ""
+		self.cssfile = "./default.css"
+		self.html = ""
+
+	def arguments(self):
+		argvs = sys.argv		# arguments
+		argc = len(argvs)		# arguments
+
+		if (argc < 2):
+			print "Usage: python %s filename" % argvs[0]
+			quit()
+
+		self.filename = argvs[1]
+
+
+	def openfile(self):
+		try:
+			f = open(self.filename)	# open file
+
+		except IOError:
+			print "Can not read %s" % argvs[1]
+			quit()
+
+		p = mdParseClass()
+
+		# Parse lines
+		lines = [];			# line buffer
+		line = f.readline()
+
+		while line:
+			lines.append(p.line_parse(line))
+			line = f.readline()	# next line
+
+		f.close				# close file
+
+		h = md2HTML()			# markdown to html class
+		
+		# read css class
+		try:
+			f = open(self.cssfile)	# default
+			h.css += f.read()
+			f.close()
+		
+		except IOError:
+			h.css = ""
+
+		self.html = h.toHtml(lines)
+
+		return
+
+#	def main(self):
+#		self.arguments()
+#		self.openfile()
+#	
+#		# wx Application main
+#		app = wx.App(False)
+#		f = frame_1(None, wx.ID_ANY, "");
+#
+#		f.html_1.SetPage(self.html, "file://" + os.path.dirname(os.path.abspath(self.filename))+ "/")
+#
+#		f.Show()			# show main dialog
+#		app.MainLoop()
+#
 
 #------------------------------------------------------------------------------
 class frame_1(wx.Frame):
@@ -523,10 +663,10 @@ class frame_1(wx.Frame):
 		kwds["style"] = wx.DEFAULT_FRAME_STYLE
 		wx.Frame.__init__(self, *args, **kwds)
 		#self.panel_1 = wx.Panel(self, wx.ID_ANY)
-		#self.panel_1 = mdPanel(self)
 		#self.html_1 = wx.html.HtmlWindow(self, wx.ID_ANY)
-		#self.html_1 = mdHtmlView(self)
 		self.html_1 = wx.html2.WebView.New(self)
+
+		self.mdview = mdview()
 		
 		# Menu Bar
 		self.frame_1_menubar = wx.MenuBar()
@@ -543,12 +683,13 @@ class frame_1(wx.Frame):
 
                 # Events
                 self.html_1.Bind(wx.EVT_KEY_DOWN, self.html1_onKeyPress)
+		self.Bind(wx.EVT_SCROLL, self.html1_scroll)
 
 		self.__set_properties()
 		self.__do_layout()
 
 	def __set_properties(self):
-		# begin wxGlade: frame_1.__set_properties
+		# begin wxGlade: frame_1.__set_propertier
 		self.SetTitle("Meow!")
 		self.SetSize((700, 800))
 		#self.html_1.LoadURL("file:///index.html")
@@ -564,53 +705,48 @@ class frame_1(wx.Frame):
 		self.Layout()
 		# end wxGlade
 
+		self.mdview.arguments()
+
+		self.mdview.openfile()
+		self.SetTitle("Meow! - " + self.mdview.filename)
+
+		self.html_1.SetPage(self.mdview.html, 
+				"file://" + os.path.dirname(os.path.abspath(self.mdview.filename))+ "/")
+
+	def html1_scroll(self, ev):
+		print "scroll"
+		ev.Skip
+
         def html1_onKeyPress(self, ev):     # WebView keypress event handler
                 keycode = ev.GetKeyCode()
+
+		if (keycode == 82):	# 'r'
+			pos = self.html_1.GetScrollPos(wx.HORIZONTAL)
+			print str(pos)
+
+#			self.mdview.openfile()
+#			self.html_1.SetPage(self.mdview.html, 
+#					"file://" + os.path.dirname(os.path.abspath(self.mdview.filename))+ "/")
+
+#			self.html_1.SetScrollPos(100)
+
+#		if (keycode == 61):	# '+'
+#			print self.html_1.GetScrollPos()
+#			self.html_1
+
                 print keycode
                 ev.Skip
 
 #------------------------------------------------------------------------------
-# Main
-#------------------------------------------------------------------------------
 if __name__ == "__main__":
 
-	argvs = sys.argv		# arguments
-	argc = len(argvs)		# arguments
-
-	if (argc < 2):
-		print "Usage: python %s filename" % argvs[0]
-		quit()
-
-	try:
-		f = open(argvs[1])	# open file
-	except IOError:
-		print "Can not read %s" % argvs[1]
-		quit()
-
-	p = mdParseClass()
-	lines = [];			# line buffer
-
-	# Parse lines
-	line = f.readline()
-	while line:
-		lines.append(p.line_parse(line))
-		line = f.readline()	# next line
-
-	f.close				# close file
-	h = md2HTML()
-
-	# Render to device context
-
-	# wx Application main
 	app = wx.App(False)
-	f = frame_1(None, wx.ID_ANY, "");
 
-	pwd = os.path.dirname(os.path.abspath(__file__))
-	f.html_1.SetPage(h.toHtml(lines), "file://" + pwd + "/")
+	frame = frame_1(None, wx.ID_ANY, "")
+	frame.Show()
 
-	#f.html_1.LoadURL(h.toHtml(lines)"")
-
-	f.Show()
 	app.MainLoop()
 
+#	m = mdview()
+#	m.main()
 
