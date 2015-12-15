@@ -3,8 +3,7 @@
 
 #------------------------------------------------------------------------------
 # Meowkdown viewer
-# Kazuei HIRONAKA <kzh@nyacom.net>
-# 2015 (C)
+# Kazuei HIRONAKA <kzh@nyacom.net> 2015 (C)
 #------------------------------------------------------------------------------
 
 import wx
@@ -136,7 +135,6 @@ class mdParseClass:
 # Class mdToken for parsing
 #------------------------------------------------------------------------------
 class mdToken:
-
 	def __init__(self, pat, token):
 		self.pat = pat 
 		self.token = token 
@@ -179,11 +177,16 @@ class md2HTML:
 		return r'<img src="' + self.ref[m.group(1)] + '">'
 		
 
+	def plain2html(self, s):
+		s = re.sub(r'<', r'&lt;', s)
+		s = re.sub(r'>', r'&gt;', s)
+		return s
+		
 	def line2html(self, s):
 		s = re.sub(r'\\[#*-_+](.*)', 		r'\1', s)	# escape
 
-		s = re.sub(r'<(http://.*)>(\s|$)',		r'<a href="\1" target="_blank">\1</a>', s)		# auto link (URI)
-		s = re.sub(r'<(.*@.*)>(\s|$)',			r'<a href="mailto:\1" target="_blank">\1</a>', s)	# auto link (mail)
+		s = re.sub(r'<(http://.*)>(\s|$)',		r'<a href="\1" target="_blank">\1</a> ', s)		# auto link (URI)
+		s = re.sub(r'<(.*@.*)>(\s|$)',			r'<a href="mailto:\1" target="_blank">\1</a> ', s)	# auto link (mail)
 
 		s = re.sub(r'!\[(.*)@(.*)\]\((.*)\s+"(.*)"\)(\s|$)',	r'<img src="\3" alt="\1" title="\4" \2', s)	# img with name and tag
 		s = re.sub(r'!\[(.*)\]\((.*)\s+"(.*)"\)(\s|$)',		r'<img src="\2" alt="\1" title="\3">', s)	# img with name
@@ -201,19 +204,21 @@ class md2HTML:
 		s = re.sub(r'\[(.*)\]\[\](\s|$)',		self.refline2html, s)	# ref link
 		s = re.sub(r'\[(.*)\]\[(.*)\](\s|$)',		self.refline2html, s)	# ref link
 
-		s = re.sub(r'\s__(.*)__(\s|$)', 	r'<strong>\1</strong>', s)	# bold
-		s = re.sub(r'\s\*\*(.*)\*\*(\s|$)', 	r'<strong>\1</strong>', s)	# bold
-		s = re.sub(r'\s_(.*)_(\s|$)', 		r'<em>\1</em>', s)		# italic
-		s = re.sub(r'\s\*(.*)*(\s|$)', 		r'<em>\1</em>', s)		# italic
-		s = re.sub(r'\s\`(.*)\`(\s|$)',		r'<code>\1</code>', s)		# code
-		s = re.sub(r'\s~~(.*)~~(\s|$)', 	r'<s>\1</s>', s)		# strike
-		s = re.sub(r'\s\s$', 			r'<br>\n', s)			# nr
+		s = re.sub(r'\s__(.*)__(\s|$)', 	r'<strong> \1</strong>', s)	# bold
+		s = re.sub(r'\s\*\*(.*)\*\*(\s|$)', 	r'<strong> \1</strong>', s)	# bold
+		s = re.sub(r'\s_(.*)_(\s|$)', 		r'<em> \1</em>', s)		# italic
+		s = re.sub(r'\s\*(.*)*(\s|$)', 		r'<em> \1</em>', s)		# italic
+		s = re.sub(r'\s\`(.*)\`(\s|$)',		r'<code> \1</code>', s)		# code
+		s = re.sub(r'\s~~(.*)~~(\s|$)', 	r'<s> \1</s>', s)		# strike
+		s = re.sub(r'\s\s$', 			r'<br> \n', s)			# nr
 
 		return s.rstrip('\n\r')
 
 	def numlist(self, lines, s):
 		i = 0
 		s.append("<ol>\n")
+
+		last_lv = TOK_NLSTSPC0
 
 		while (i < len(lines)):
 			l, v, t = lines[i]	# current
@@ -222,27 +227,33 @@ class md2HTML:
 				if (i+1 < len(lines)):
 					if (t != TOK_BRANK):
 						s.append("<li>" + self.line2html(v) + "</li>\n")
+						last_lv = t
 
 					ll, vv, tt = lines[i+1]	# lookup next level
 
 					if (tt >= TOK_NLSTSPC0 and tt <= TOK_NLSTTAB4):
-						if (tt > t):	# deeper level
+						if (tt > last_lv):	# deeper level
 							i += self.numlist(lines[i+1:], s) + 1
 							break
-						elif (tt < t):	# less level
+						elif (tt < last_lv):	# less level
                                                         s.append("</ol>\n")
 
 					elif (tt == TOK_BRANK):
+						if (t == TOK_BRANK):
+							break
+
 						s.append("<br>\n")
 
 					elif (tt >= TOK_LSTSPC0 and tt <= TOK_LSTTAB4):
-						if (tt > (t-9)): # more deeper
+						if (tt > (last_lv-9)): # more deeper
 							i += self.disklist(lines[i:], s) + 1
 						else:
 							break;
 
 					else:
 						break
+				else:
+					s.append("<li>" + self.line2html(v) + "</li>\n")
 
 			else:
 				break
@@ -258,6 +269,8 @@ class md2HTML:
 		i = 0
 		s.append("<ul>\n")
 
+		last_lv = TOK_NLSTSPC0
+
 		while (i < len(lines)):
 			l, v, t = lines[i]	# current
 
@@ -265,27 +278,34 @@ class md2HTML:
 				if (i+1 < len(lines)):
 					if (t != TOK_BRANK):
 						s.append("<li>" + self.line2html(v) + "</li>\n")
+						last_lv = t
 
 					ll, vv, tt = lines[i+1]	# lookup next level
 
 					if (tt >= TOK_LSTSPC0 and tt <= TOK_LSTTAB4):
-						if (tt > t):	# deeper level
+						if (tt > last_lv):	# deeper level
 							i += self.disklist(lines[i+1:], s) + 1
 							break
-						elif (tt < t):	# less level
+						elif (tt < last_lv):	# less level
                                                         s.append("</ul>\n")
 
 					elif (tt == TOK_BRANK):
+						if (t == TOK_BRANK):
+							break
+
 						s.append("<br>\n")
 
 					elif (tt >= TOK_NLSTSPC0 and tt <= TOK_NLSTTAB4):
-						if (tt > (t+9)): # more deeper
+						if (tt > (last_lv+9)): # more deeper
 							i += self.numlist(lines[i+1:], s) + 1
+
 						else:
 							break
 
 					else:
 						break
+				else:
+					s.append("<li>" + self.line2html(v) + "</li>\n")
 
 			else:
 				break
@@ -327,7 +347,7 @@ class md2HTML:
 				break
 
 			else:
-				s.append(l + "\n")
+				s.append(self.plain2html(l) + "\n")
 
 			i += 1
 
@@ -344,7 +364,7 @@ class md2HTML:
 			l, v, t = lines[i]
 
 			if (t == TOK_PRE2):
-				s.append(l + "\n")
+				s.append(self.plain2html(v) + "\n")
 
 			else:
 				i -= 1
@@ -454,6 +474,7 @@ class md2HTML:
 			l, v, t = lines[i]
 
 			if (t != TOK_QUOTE):
+				i -= 1
 				break
 
 			quot = re.split(r">", l)
@@ -539,13 +560,13 @@ class md2HTML:
 				if (i+1 < len(lines)):
 					i += self.quotedpreblock(lines[i+1:], htmlbuf)
 				else:	# EOF
-					htmlbuf.append("<pre>" + self.line2html(l) + "</pre>\n")
+					htmlbuf.append("<pre>" + l + "</pre>\n")
 
 			if (t == TOK_PRE2):	# spaced pre block
 				if (i+1 < len(lines)):
 					i += self.spacedpreblock(lines[i:], htmlbuf)
 				else:	# EOF
-					htmlbuf.append("<pre>" + self.line2html(l) + "</pre>\n")
+					htmlbuf.append("<pre>" + l + "</pre>\n")
 
 
 			if (t >= TOK_LSTSPC0 and t <= TOK_LSTTAB4):	# Disk list
@@ -575,15 +596,15 @@ class md2HTML:
 	
 			#if (t == TOK_BRANK):
 			#	block = True
-				#htmlbuf.append("<h4>" + v + "</h4>\n")
-				#continue
+			#	htmlbuf.append("<h4>" + v + "</h4>\n")
+			#	continue
 				#self.py += self.lh
 
 			i += 1
 
 		htmlbuf.append("</html>\n")
 
-		#print ''.join(htmlbuf)
+#		print ''.join(htmlbuf)
 
 		return ''.join(htmlbuf)
 
@@ -642,99 +663,124 @@ class mdview:
 
 		return
 
-#	def main(self):
-#		self.arguments()
-#		self.openfile()
-#	
-#		# wx Application main
-#		app = wx.App(False)
-#		f = frame_1(None, wx.ID_ANY, "");
-#
-#		f.html_1.SetPage(self.html, "file://" + os.path.dirname(os.path.abspath(self.filename))+ "/")
-#
-#		f.Show()			# show main dialog
-#		app.MainLoop()
-#
-
 #------------------------------------------------------------------------------
+class customPanel(wx.ScrolledWindow):
+	def __init__(self, parent):
+		wx.Panel.__init__(self, parent, style = wx.VSCROLL)
+
 class frame_1(wx.Frame):
 	def __init__(self, *args, **kwds):
 		# begin wxGlade: frame_1.__init__
 		kwds["style"] = wx.DEFAULT_FRAME_STYLE
 		wx.Frame.__init__(self, *args, **kwds)
-		#self.panel_1 = wx.Panel(self, wx.ID_ANY)
-		#self.html_1 = wx.html.HtmlWindow(self, wx.ID_ANY)
-		self.html_1 = wx.html2.WebView.New(self)
+
+		self.panel_1 = wx.Panel(self, wx.ID_ANY)
+		self.html_1 = wx.html2.WebView.New(self)		# webview
+		self.html1_vscr_pos = 0					# scroll position
 
 		self.mdview = mdview()
 		
-		# Menu Bar
-		self.frame_1_menubar = wx.MenuBar()
-		wxglade_tmp_menu = wx.Menu()
-		wxglade_tmp_menu.Append(wx.ID_ANY, "Export", "", wx.ITEM_NORMAL)
-		wxglade_tmp_menu.Append(wx.ID_ANY, "Quit", "", wx.ITEM_NORMAL)
-		self.frame_1_menubar.Append(wxglade_tmp_menu, "File")
-		wxglade_tmp_menu = wx.Menu()
-		wxglade_tmp_menu.Append(wx.ID_ANY, "Zoom In", "", wx.ITEM_NORMAL)
-		wxglade_tmp_menu.Append(wx.ID_ANY, "Zoom Out", "", wx.ITEM_NORMAL)
-		self.frame_1_menubar.Append(wxglade_tmp_menu, "View")
-		self.SetMenuBar(self.frame_1_menubar)
-		# Menu Bar end
-
-                # Events
-                self.html_1.Bind(wx.EVT_KEY_DOWN, self.html1_onKeyPress)
-		self.Bind(wx.EVT_SCROLL, self.html1_scroll)
+		## Menu Bar
+		#self.frame_1_menubar = wx.MenuBar()
+		#wxglade_tmp_menu = wx.Menu()
+		#wxglade_tmp_menu.Append(wx.ID_ANY, "Export", "", wx.ITEM_NORMAL)
+		#wxglade_tmp_menu.Append(wx.ID_ANY, "Quit", "", wx.ITEM_NORMAL)
+		#self.frame_1_menubar.Append(wxglade_tmp_menu, "File")
+		#wxglade_tmp_menu = wx.Menu()
+		#wxglade_tmp_menu.Append(wx.ID_ANY, "Zoom In", "", wx.ITEM_NORMAL)
+		#wxglade_tmp_menu.Append(wx.ID_ANY, "Zoom Out", "", wx.ITEM_NORMAL)
+		#self.frame_1_menubar.Append(wxglade_tmp_menu, "View")
+		#self.SetMenuBar(self.frame_1_menubar)
+		## Menu Bar end
 
 		self.__set_properties()
 		self.__do_layout()
 
 	def __set_properties(self):
-		# begin wxGlade: frame_1.__set_propertier
 		self.SetTitle("Meow!")
-		self.SetSize((700, 800))
-		#self.html_1.LoadURL("file:///index.html")
-		#self.html_1.SetPage(r"Meowkdown view")
-		#self.panel_1.SetBackgroundColour(wx.Colour(255, 255, 255))
-		# end wxGlade
+		self.SetSize((700, 900))
+
+		try:
+			self.html_1.EnableContextMenu(False)	# since 2.9.5
+
+		except AttributeError:
+			print "Disabling context menu failed"
+
+		self.html_1.EnableHistory(False)
+
+                # Events
+                self.html_1.Bind(wx.EVT_KEY_DOWN, self.html1_onKeyPress)
+		self.html_1.Bind(wx.html2.EVT_WEBVIEW_LOADED, self.html_1_loaded)
 
 	def __do_layout(self):
-		# begin wxGlade: frame_1.__do_layout
 		sizer_1 = wx.BoxSizer(wx.VERTICAL)
 		sizer_1.Add(self.html_1, 1, wx.EXPAND, 0)
+
 		self.SetSizer(sizer_1)
 		self.Layout()
-		# end wxGlade
 
 		self.mdview.arguments()
-
 		self.mdview.openfile()
+
 		self.SetTitle("Meow! - " + self.mdview.filename)
 
 		self.html_1.SetPage(self.mdview.html, 
 				"file://" + os.path.dirname(os.path.abspath(self.mdview.filename))+ "/")
 
-	def html1_scroll(self, ev):
-		print "scroll"
+	def html_1_loaded(self, ev):
+
+		# revert scroll.. 
+		# (teach me how can I better control for scroll...
+
+		self.html_1.SetScrollPos(wx.VERTICAL, self.html1_vscr_pos - 1, True)	# revert scroll pos
+		self.html_1.SetScrollPos(wx.VERTICAL, self.html1_vscr_pos + 1, True)	# revert scroll pos
+
+		#self.html_1.ScrollPages(1)	# revert scroll pos
 		ev.Skip
 
         def html1_onKeyPress(self, ev):     # WebView keypress event handler
                 keycode = ev.GetKeyCode()
+#                print keycode
 
-		if (keycode == 82):	# 'r'
-			pos = self.html_1.GetScrollPos(wx.HORIZONTAL)
-			print str(pos)
+		if (keycode == 82):	# 'r' (refesh)
 
-#			self.mdview.openfile()
-#			self.html_1.SetPage(self.mdview.html, 
-#					"file://" + os.path.dirname(os.path.abspath(self.mdview.filename))+ "/")
+			self.html1_vscr_pos = self.html_1.GetScrollPos(wx.VERTICAL) # save scroll pos
 
-#			self.html_1.SetScrollPos(100)
+			self.mdview.openfile()
+			self.html_1.SetPage(self.mdview.html, 
+					"file://" + os.path.dirname(os.path.abspath(self.mdview.filename))+ "/")
 
-#		if (keycode == 61):	# '+'
-#			print self.html_1.GetScrollPos()
-#			self.html_1
+			#self.html_1.SetScrollPos(wx.VERTICAL, pos-10, True)
+			#self.html_1.ScrollLines(100)
 
-                print keycode
+		if (keycode == 61):	# '+'
+			zoom = self.html_1.GetZoom()
+			if (zoom < 4):
+				self.html_1.SetZoom(self.html_1.GetZoom()+1)
+
+		if (keycode == 45):	# '-'
+			zoom = self.html_1.GetZoom()
+			if (zoom > 0):
+				self.html_1.SetZoom(zoom-1)
+
+		if (keycode == 74):	# 'j'
+			self.html_1.ScrollLines(1)	# scroll down
+			
+		if (keycode == 75):	# 'k'
+			self.html_1.ScrollLines(-1)	# scroll up
+
+		if (keycode == 81):	# 'q'
+			self.Close()
+
+		if (keycode == 80):	# 'p'
+			self.html_1.Print()		# scroll up
+
+		if (ev.ControlDown() and keycode == 68):	# 'd'
+			self.html_1.PageDown()		# page down
+			
+		if (ev.ControlDown() and keycode == 85):	# 'u'
+			self.html_1.PageUp()		# page up
+
                 ev.Skip
 
 #------------------------------------------------------------------------------
@@ -746,7 +792,4 @@ if __name__ == "__main__":
 	frame.Show()
 
 	app.MainLoop()
-
-#	m = mdview()
-#	m.main()
 
