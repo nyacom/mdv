@@ -135,7 +135,6 @@ class mdParseClass:
 # Class mdToken for parsing
 #------------------------------------------------------------------------------
 class mdToken:
-
 	def __init__(self, pat, token):
 		self.pat = pat 
 		self.token = token 
@@ -219,6 +218,8 @@ class md2HTML:
 		i = 0
 		s.append("<ol>\n")
 
+		last_lv = TOK_NLSTSPC0
+
 		while (i < len(lines)):
 			l, v, t = lines[i]	# current
 
@@ -226,14 +227,15 @@ class md2HTML:
 				if (i+1 < len(lines)):
 					if (t != TOK_BRANK):
 						s.append("<li>" + self.line2html(v) + "</li>\n")
+						last_lv = t
 
 					ll, vv, tt = lines[i+1]	# lookup next level
 
 					if (tt >= TOK_NLSTSPC0 and tt <= TOK_NLSTTAB4):
-						if (tt > t):	# deeper level
+						if (tt > last_lv):	# deeper level
 							i += self.numlist(lines[i+1:], s) + 1
 							break
-						elif (tt < t):	# less level
+						elif (tt < last_lv):	# less level
                                                         s.append("</ol>\n")
 
 					elif (tt == TOK_BRANK):
@@ -243,13 +245,15 @@ class md2HTML:
 						s.append("<br>\n")
 
 					elif (tt >= TOK_LSTSPC0 and tt <= TOK_LSTTAB4):
-						if (tt > (t-9)): # more deeper
+						if (tt > (last_lv-9)): # more deeper
 							i += self.disklist(lines[i:], s) + 1
 						else:
 							break;
 
 					else:
 						break
+				else:
+					s.append("<li>" + self.line2html(v) + "</li>\n")
 
 			else:
 				break
@@ -265,6 +269,8 @@ class md2HTML:
 		i = 0
 		s.append("<ul>\n")
 
+		last_lv = TOK_NLSTSPC0
+
 		while (i < len(lines)):
 			l, v, t = lines[i]	# current
 
@@ -272,14 +278,15 @@ class md2HTML:
 				if (i+1 < len(lines)):
 					if (t != TOK_BRANK):
 						s.append("<li>" + self.line2html(v) + "</li>\n")
+						last_lv = t
 
 					ll, vv, tt = lines[i+1]	# lookup next level
 
 					if (tt >= TOK_LSTSPC0 and tt <= TOK_LSTTAB4):
-						if (tt > t):	# deeper level
+						if (tt > last_lv):	# deeper level
 							i += self.disklist(lines[i+1:], s) + 1
 							break
-						elif (tt < t):	# less level
+						elif (tt < last_lv):	# less level
                                                         s.append("</ul>\n")
 
 					elif (tt == TOK_BRANK):
@@ -289,13 +296,16 @@ class md2HTML:
 						s.append("<br>\n")
 
 					elif (tt >= TOK_NLSTSPC0 and tt <= TOK_NLSTTAB4):
-						if (tt > (t+9)): # more deeper
+						if (tt > (last_lv+9)): # more deeper
 							i += self.numlist(lines[i+1:], s) + 1
+
 						else:
 							break
 
 					else:
 						break
+				else:
+					s.append("<li>" + self.line2html(v) + "</li>\n")
 
 			else:
 				break
@@ -594,7 +604,7 @@ class md2HTML:
 
 		htmlbuf.append("</html>\n")
 
-		#print ''.join(htmlbuf)
+#		print ''.join(htmlbuf)
 
 		return ''.join(htmlbuf)
 
@@ -730,7 +740,7 @@ class frame_1(wx.Frame):
 
         def html1_onKeyPress(self, ev):     # WebView keypress event handler
                 keycode = ev.GetKeyCode()
-                #print keycode
+#                print keycode
 
 		if (keycode == 82):	# 'r' (refesh)
 
@@ -759,8 +769,17 @@ class frame_1(wx.Frame):
 		if (keycode == 75):	# 'k'
 			self.html_1.ScrollLines(-1)	# scroll up
 
+		if (keycode == 81):	# 'q'
+			self.Close()
+
 		if (keycode == 80):	# 'p'
 			self.html_1.Print()		# scroll up
+
+		if (ev.ControlDown() and keycode == 68):	# 'd'
+			self.html_1.PageDown()		# page down
+			
+		if (ev.ControlDown() and keycode == 85):	# 'u'
+			self.html_1.PageUp()		# page up
 
                 ev.Skip
 
