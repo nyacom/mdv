@@ -1,13 +1,12 @@
 Mdview
 =====================================================================
-MeowkDown viewer  
-A yet another Markdown viewer for cats.
+A yet another Markdown viewer.
 
 Copyright
 ---------------------------------------------------------------------
-![nyacomlogo@width=100px](./nyacom.png)
-
 Kazuei HIRONAKA <kzh@nyacom.net> 2015 &copy;
+
+![nyacomlogo@width=100px](./nyacom.png)
 
 Usage
 ---------------------------------------------------------------------
@@ -19,6 +18,13 @@ Usage
 
     % ./debian_run.sh <something good.md>
 
+Known issue
+---------------------------------------------------------------------
++ Only well tested on Debian8
++ GUI impremented by wxPython + webview
+ - The webview rendering engine is depending on the running environment.
+ - Mostly, Webkit on Linux (GTK) Trident on Windows.
+
 Shortcut
 ---------------------------------------------------------------------
 |:---:|----------------------------|
@@ -26,11 +32,16 @@ Shortcut
 | r   | reload and regenerate HTML |
 | j,k | vi like scroll down        |
 | +,- | Zoom in/out                |
-| p   | Show printer window        |
+| p   | Show print window          |
+| C-d | Page down                  |
+| C-u | Page up                    |
+| q   | Quit                       |
 
 Supported syntax
----------------------------------------------------------------------
-### Text attributes
+=====================================================================
+
+Text attributes
+-----------------------------------------------------------
 
 This part will break line  
 this part will not break line
@@ -46,11 +57,11 @@ This part will ~~strike~~
 
 This part is `code`
 
-### Preview
+Preview
+-----------------------------------------------------------
 
+```
 This is code block
-
-``` 
  #include <stdio.h>
  int main() {
  	printf("Hello world\n");
@@ -63,7 +74,9 @@ This is code block
  This is not code block
 
 
-### Quote
+Quote
+-----------------------------------------------------------
+
 > level1
 >> level2 
 >>> level3
@@ -92,7 +105,8 @@ This is code block
  1. Number list is also available
  1. See like this
 
-### Table
+Table
+-----------------------------------------------------------
 
 #### Valid table syntax
 
@@ -116,5 +130,33 @@ This is code block
 |:-------|:------:|
 |:-------|:------:|
 
+
+Images
+-----------------------------------------------------------
+
+#### left aligned image
+
+    ![image](nyacom.png)
+
+![image](nyacom.png)
+
+#### centered image
+
+    ![ image ](nyacom.png)
+
+![ image ](nyacom.png)
+
+#### right aligned image
+
+    ![ image](nyacom.png)
+
+![ image](nyacom.png)
+
+
+#### Optional attribute
+
+    ![ image@width=32px ](nyacom.png)
+
+![ image@width=32px ](nyacom.png)
 
 

@@ -1,0 +1,67 @@
+/*--------------------------------------------------------*/
+html{
+	font-family:IPAMonaPGothic,'IPA モナー Pゴシック',Monapo,Mona,'MS PGothic','ＭＳ Ｐゴシック',sans-serif;
+	font-size:16px;
+	line-height:16px;
+	margin: 1em 1em 1em 1em;
+	/*color: #00ffff;*
+	/*background-color: #222222;*/
+}
+/*--------------------------------------------------------*/
+pre {
+	border-radius: 10px;
+	-webkit-border-raidus: 10px;
+	-moz-border-radius: 10px;
+
+	margin:1em 1em 1em 1em;
+	padding:1em 1em 1em 1em;
+
+	/*background-color:#191970;*/
+	background-color:#E6E6FA;
+	border:2px solid #b9b9b9;
+	font-size:12px;
+	line-height:12px;
+	color:#191970;
+}
+/*--------------------------------------------------------*/
+h1{
+	margin-top: 2em;
+}
+
+/*--------------------------------------------------------*/
+hr{
+	border: 1px solid #696969;
+}
+
+/*--------------------------------------------------------*/
+table{
+	border-collapse: collapse;
+}
+
+th{
+	width: 25%;
+	padding: 6px;
+	text-align: left;
+	vertical-align: top;
+	color: #333;
+	background-color: #eee;
+	border: 1px solid #b9b9b9;
+}
+
+td{
+	padding: 6px;
+	background-color: #fff;
+	border: 1px solid #b9b9b9;
+}
+
+/*--------------------------------------------------------*/
+blockquote{
+	position: relative;
+	margin: 0 1em 1.5em;
+	padding: 1em;
+	border-left: 3px solid #b9b9b9;
+	background-color: #ffffff;
+	z-index: 1;
+}
+
+/*--------------------------------------------------------*/
