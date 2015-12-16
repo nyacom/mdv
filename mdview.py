@@ -10,6 +10,7 @@ import wx
 import wx.html2
 import gettext
 import os
+import pipes
 import sys
 import re
 import math
@@ -170,12 +171,24 @@ class md2HTML:
 
 		return r'<a href="' + self.ref[m.group(1)] + '">' + m.group(1) + '</a>'
 
-	def imgrefline2html(self, m):
+	def imgref2html(self, m):
 		if (m.lastindex > 2):
 			return r'<img src="' + self.ref[m.group(1)] + '"' + m.group(2) + '>'
 
 		return r'<img src="' + self.ref[m.group(1)] + '">'
-		
+
+	def imgref2html_r(self, m):
+		if (m.lastindex > 2):
+			return r'<div style="text-align:right;"><img src="' + self.ref[m.group(1)] + '"' + m.group(2) + '></div>'
+
+		return r'<div style="text-align:right;><img src="' + self.ref[m.group(1)] + '"></div>'
+
+	def imgref2html_c(self, m):
+		if (m.lastindex > 2):
+			return r'<div style="text-align:center;"><img src="' + self.ref[m.group(1)] + '"' + m.group(2) + '></div>'
+
+		return r'<div style="text-align:center;"><img src="' + self.ref[m.group(1)] + '"></div>'
+	
 
 	def plain2html(self, s):
 		s = re.sub(r'<', r'&lt;', s)
@@ -183,20 +196,34 @@ class md2HTML:
 		return s
 		
 	def line2html(self, s):
-		s = re.sub(r'\\[#*-_+](.*)', 		r'\1', s)	# escape
+		s = re.sub(r'\\[#*-_+](.*)', r'\1', s)	# escape
 
-		s = re.sub(r'<(http://.*)>(\s|$)',		r'<a href="\1" target="_blank">\1</a> ', s)		# auto link (URI)
-		s = re.sub(r'<(.*@.*)>(\s|$)',			r'<a href="mailto:\1" target="_blank">\1</a> ', s)	# auto link (mail)
+		s = re.sub(r'<(http://.*)>(\s|$)', r'<a href="\1" target="_blank">\1</a> ', s)		# auto link (URI)
+		s = re.sub(r'<(.*@.*)>(\s|$)', r'<a href="mailto:\1" target="_blank">\1</a> ', s)	# auto link (mail)
 
-		s = re.sub(r'!\[(.*)@(.*)\]\((.*)\s+"(.*)"\)(\s|$)',	r'<img src="\3" alt="\1" title="\4" \2', s)	# img with name and tag
-		s = re.sub(r'!\[(.*)\]\((.*)\s+"(.*)"\)(\s|$)',		r'<img src="\2" alt="\1" title="\3">', s)	# img with name
+		s = re.sub(r'!\[\s(.*)@(.*)\s\]\((.*)\s+"(.*)"\)(\s|$)',r'<div style="text-align:center;"><img src="\3" alt="\1" title="\4" \2></div>', s)	# centered img with name and tag
+		s = re.sub(r'!\[\s(.*)@(.*)\]\((.*)\s+"(.*)"\)(\s|$)',	r'<div style="text-align:right;"><img src="\3" alt="\1" title="\4" \2></div>', s)	# rightered img with name and tag
+		s = re.sub(r'!\[(.*)@(.*)\]\((.*)\s+"(.*)"\)(\s|$)',	r'<img src="\3" alt="\1" title="\4" \2>', s)						# img with name and tag
 
-		s = re.sub(r'!\[(.*)@(.*)\]\((.*)\)(\s|$)',		r'<img src="\3" \2>', s)		# img
-		s = re.sub(r'!\[(.*)\]\((.*)\)(\s|$)',			r'<img src="\2">', s)			# img
+		s = re.sub(r'!\[\s(.*)\s\]\((.*)\s+"(.*)"\)(\s|$)',	r'<div style="text-align:center;"><img src="\2" alt="\1" title="\3"></div>', s)		# centered img with name
+		s = re.sub(r'!\[\s(.*)\]\((.*)\s+"(.*)"\)(\s|$)',	r'<div style="text-align:right;"><img src="\2" alt="\1" title="\3"></div>', s)		# rightered img with name
+		s = re.sub(r'!\[(.*)\]\((.*)\s+"(.*)"\)(\s|$)',		r'<img src="\2" alt="\1" title="\3">', s)						# img with name
 
-		s = re.sub(r'!\[(.*)@(.*)\](\s|$)',		self.imgrefline2html, s)			# img with ref
-		s = re.sub(r'!\[(.*)\](\s|$)',			self.imgrefline2html, s)			# img with ref
-		s = re.sub(r'!\[(.*)\](\s|$)',			self.imgrefline2html, s)			# img with ref
+		s = re.sub(r'!\[\s(.*)@(.*)\s\]\((.*)\)(\s|$)', r'<div style="text-align:center;"><img src="\3" \2></div>', s)		# img
+		s = re.sub(r'!\[\s(.*)@(.*)\]\((.*)\)(\s|$)', 	r'<div style="text-align:right;"><img src="\3" \2></div>', s)		# img
+		s = re.sub(r'!\[(.*)@(.*)\]\((.*)\)(\s|$)', 	r'<img src="\3" \2>', s)						# img
+
+		s = re.sub(r'!\[\s(.*)\s\]\((.*)\)(\s|$)', 	r'<div style="text-align:center;"><img src="\2"></div>', s)		# img
+		s = re.sub(r'!\[\s(.*)\]\((.*)\)(\s|$)', 	r'<div style="text-align:right;"><img src="\2"></div>', s)		# img
+		s = re.sub(r'!\[(.*)\]\((.*)\)(\s|$)', 		r'<img src="\2">', s)							# img
+
+		s = re.sub(r'!\[\s(.*)@(.*)\s\](\s|$)',	self.imgref2html_c, s)			# img with ref
+		s = re.sub(r'!\[\s(.*)@(.*)\](\s|$)',	self.imgref2html_r, s)			# img with ref
+		s = re.sub(r'!\[(.*)@(.*)\](\s|$)',	self.imgref2html, s)			# img with ref
+
+		s = re.sub(r'!\[\s(.*)\](\s|$)',	self.imgref2html_r, s)			# img with ref
+		s = re.sub(r'!\[\s(.*)\s\](\s|$)',	self.imgref2html_c, s)			# img with ref
+		s = re.sub(r'!\[(.*)\](\s|$)',		self.imgref2html, s)			# img with ref
 
 		s = re.sub(r'\[(.*)\]\((.*)\s+"(.*)"\)(\s|$)',	r'<a href="\2" target="_blank" title="\3">\1</a>', s)	# link with name
 		s = re.sub(r'\[(.*)\]\((.*)\)(\s|$)',		r'<a href="\2" target="_blank">\1</a>', s)	# link
@@ -337,21 +364,52 @@ class md2HTML:
 	
 	def quotedpreblock(self, lines, s):
 		i = 0
-		s.append("<pre>\n")
+		l, v, t = lines[i]
 
-		while (i < len(lines)):
-			l, v, t = lines[i]
+		# left lines are enough?
+		if (1 >= len(lines)):
+			s.append("<pre>" + l + "</pre>\n")
+			return 1
 
-			if (t == TOK_PRE1):
+
+		i += 1
+		# is pipe command?
+		if (v != None):
+			print v
+			pipebuf = ""
+			while (i < len(lines)):
+				l, v, t = lines[i]
+
+				if (t == TOK_PRE1):
+					i += 1
+					break
+
+				else:
+					pipebuf += pipebuf + l
+
 				i += 1
-				break
 
-			else:
-				s.append(self.plain2html(l) + "\n")
+			#t = pipes.Template()
+			#t.append(v, '-.')
+			#f = t.open('/tmp/l', 'w')
+			#f.write(pipebuf)
+			#f.close()
 
-			i += 1
+		else:
+			s.append("<pre>\n")
+			while (i < len(lines)):
+				l, v, t = lines[i]
 
-		s.append("</pre>\n")
+				if (t == TOK_PRE1):
+					i += 1
+					break
+
+				else:
+					s.append(self.plain2html(l) + "\n")
+
+				i += 1
+
+			s.append("</pre>\n")
 
 		return i
 
@@ -557,10 +615,7 @@ class md2HTML:
 				htmlbuf.append("<h6>" + self.line2html(v) + "</h6>\n")
 
 			if (t == TOK_PRE1):	# quoted pre block
-				if (i+1 < len(lines)):
-					i += self.quotedpreblock(lines[i+1:], htmlbuf)
-				else:	# EOF
-					htmlbuf.append("<pre>" + l + "</pre>\n")
+				i += self.quotedpreblock(lines[i:], htmlbuf)
 
 			if (t == TOK_PRE2):	# spaced pre block
 				if (i+1 < len(lines)):
@@ -604,7 +659,7 @@ class md2HTML:
 
 		htmlbuf.append("</html>\n")
 
-#		print ''.join(htmlbuf)
+		print ''.join(htmlbuf)
 
 		return ''.join(htmlbuf)
 
@@ -674,6 +729,9 @@ class frame_1(wx.Frame):
 		kwds["style"] = wx.DEFAULT_FRAME_STYLE
 		wx.Frame.__init__(self, *args, **kwds)
 
+		icon = wx.Icon('nyacom.ico', wx.BITMAP_TYPE_ICO)
+		self.SetIcon(icon)
+
 		self.panel_1 = wx.Panel(self, wx.ID_ANY)
 		self.html_1 = wx.html2.WebView.New(self)		# webview
 		self.html1_vscr_pos = 0					# scroll position
@@ -698,7 +756,7 @@ class frame_1(wx.Frame):
 
 	def __set_properties(self):
 		self.SetTitle("Meow!")
-		self.SetSize((700, 900))
+		self.SetSize((800, 900))
 
 		try:
 			self.html_1.EnableContextMenu(False)	# since 2.9.5
