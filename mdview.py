@@ -10,7 +10,8 @@ import wx
 import wx.html2
 import gettext
 import os
-import pipes
+import time
+import subprocess
 import sys
 import re
 import math
@@ -18,7 +19,8 @@ import math
 # import frame1
 
 #------------------------------------------------------------------------------
-# Constant values
+# Constant valuess
+
 #------------------------------------------------------------------------------
 TOK_HR		= 0
 TOK_PRE1	= 1
@@ -106,8 +108,8 @@ class mdParseClass:
 		self.toks.append(mdToken(r'^\s{,4}\|(.*)\|[\s\t]*$', TOK_TABLE))	# table
 		self.toks.append(mdToken(r'^\s{,4}>(.*)$', TOK_QUOTE))			# quote
 
-		self.toks.append(mdToken(r'^\s{,4}```s*(.*)$',		TOK_PRE1))	# pre 1
-		self.toks.append(mdToken(r'^\s{4}(.*)$',		TOK_PRE2))	# pre 2
+		self.toks.append(mdToken(r'^\s{,3}```!*(.*)$',		TOK_PRE1))	# pre 1
+		self.toks.append(mdToken(r'^\s{3}(.*)$',		TOK_PRE2))	# pre 2
 
 		self.toks.append(mdToken(r'^\s{,4}\[(.*)\]:.*$',		TOK_REF))	# ref
 		self.toks.append(mdToken(r'^\s{,4}\[(.*)\]:.*\s+".*"$',		TOK_REF))	# ref
@@ -152,6 +154,9 @@ class md2HTML:
 		self.css = ""
 		self.ref = {}	# reference dict
 
+		self.apppath = ""
+		self.filepath = ""
+
 	def appendHeader(self, s):
 		s.append('<html>\n')
 		s.append('<head>\n')
@@ -163,6 +168,9 @@ class md2HTML:
 		s.append('</style>\n')
 
 		#s.append('<link rel="stylesheet" type="text/css" href="default.css">\n')
+		s.append('<meta http-equiv="Pragma" content="no-cache">\n')
+		s.append('<meta http-equiv="Cache-Control" content="no-cache">\n')
+		s.append('<meta http-equiv="Expires" content="0">\n')
 		s.append('</head>\n')
 
 	def refline2html(self, m):
@@ -170,6 +178,62 @@ class md2HTML:
 			return r'<a href="' + self.ref[m.group(2)] + '">' + m.group(1) + '</a>'
 
 		return r'<a href="' + self.ref[m.group(1)] + '">' + m.group(1) + '</a>'
+
+	def img2html(self, m):
+		ret = ''
+
+		if (m.lastindex > 5):
+			ret += r'<img src="' + m.group(3) + '?' + str(time.time()) + r'" alt="' + m.group(1) + r'" title="' + m.group(4) + r'" ' + m.group(2) + r'>'
+
+		elif (m.lastindex > 4):
+			ret += r'<img src="' + m.group(2) + '?' + str(time.time()) + '" alt="' + m.group(1) + '" ' + m.group(3) + r'>'	# src + option + title
+
+		elif (m.lastindex > 3):
+			ret += r'<img src="' + m.group(3) + '?' + str(time.time()) + '"' + m.group(2) + r'>'	# src + option
+
+		elif (m.lastindex > 2):
+			ret += r'<img src="' + m.group(2) + '?' + str(time.time()) + '">'	# src
+
+		return ret
+
+	def img2html_r(self, m):
+		ret = r'<div style="text-align:right;">'
+
+		if (m.lastindex > 5):
+			ret += r'<img src="' + m.group(3) + '?' + str(time.time()) + r'" alt="' + m.group(1) + r'" title="' + m.group(4) + r'" ' + m.group(2) + r'>'
+
+		elif (m.lastindex > 4):
+			ret += r'<img src="' + m.group(2) + '?' + str(time.time()) + '" alt="' + m.group(1) + '" ' + m.group(3) + r'>'	# src + option + title
+
+		elif (m.lastindex > 3):
+			ret += r'<img src="' + m.group(3) + '?' + str(time.time()) + '"' + m.group(2) + r'>'	# src + option
+
+		elif (m.lastindex > 2):
+			ret += r'<img src="' + m.group(2) + '?' + str(time.time()) + '">'	# src
+
+		ret += r'</div>'
+
+		return ret
+
+	def img2html_c(self, m):
+		ret = r'<div style="text-align:center;">'
+
+		if (m.lastindex > 5):
+			ret += r'<img src="' + m.group(3) + '?' + str(time.time()) + r'" alt="' + m.group(1) + r'" title="' + m.group(4) + r'" ' + m.group(2) + r'>'
+
+		elif (m.lastindex > 4):
+			ret += r'<img src="' + m.group(2) + '?' + str(time.time()) + '" alt="' + m.group(1) + '" ' + m.group(3) + r'>'	# src + option + title
+
+		elif (m.lastindex > 3):
+			ret += r'<img src="' + m.group(3) + '?' + str(time.time()) + '"' + m.group(2) + r'>'	# src + option
+
+		elif (m.lastindex > 2):
+			ret += r'<img src="' + m.group(2) + '?' + str(time.time()) + '">'	# src
+
+		ret += r'</div>'
+
+		return ret
+
 
 	def imgref2html(self, m):
 		if (m.lastindex > 2):
@@ -193,6 +257,7 @@ class md2HTML:
 	def plain2html(self, s):
 		s = re.sub(r'<', r'&lt;', s)
 		s = re.sub(r'>', r'&gt;', s)
+
 		return s
 		
 	def line2html(self, s):
@@ -201,28 +266,28 @@ class md2HTML:
 		s = re.sub(r'<(http://.*)>(\s|$)', r'<a href="\1" target="_blank">\1</a> ', s)		# auto link (URI)
 		s = re.sub(r'<(.*@.*)>(\s|$)', r'<a href="mailto:\1" target="_blank">\1</a> ', s)	# auto link (mail)
 
-		s = re.sub(r'!\[\s(.*)@(.*)\s\]\((.*)\s+"(.*)"\)(\s|$)',r'<div style="text-align:center;"><img src="\3" alt="\1" title="\4" \2></div>', s)	# centered img with name and tag
-		s = re.sub(r'!\[\s(.*)@(.*)\]\((.*)\s+"(.*)"\)(\s|$)',	r'<div style="text-align:right;"><img src="\3" alt="\1" title="\4" \2></div>', s)	# rightered img with name and tag
-		s = re.sub(r'!\[(.*)@(.*)\]\((.*)\s+"(.*)"\)(\s|$)',	r'<img src="\3" alt="\1" title="\4" \2>', s)						# img with name and tag
+		s = re.sub(r'!\[\s(.*)@(.*)\s\]\((.*)\s+"(.*)"\)(\s|$)', self.img2html_c, s)	# centered img with name and tag
+		s = re.sub(r'!\[\s(.*)@(.*)\]\((.*)\s+"(.*)"\)(\s|$)', self.img2html_r, s)	# rightered img with name and tag
+		s = re.sub(r'!\[(.*)@(.*)\]\((.*)\s+"(.*)"\)(\s|$)', self.img2html, s)		# img with name and tag
 
-		s = re.sub(r'!\[\s(.*)\s\]\((.*)\s+"(.*)"\)(\s|$)',	r'<div style="text-align:center;"><img src="\2" alt="\1" title="\3"></div>', s)		# centered img with name
-		s = re.sub(r'!\[\s(.*)\]\((.*)\s+"(.*)"\)(\s|$)',	r'<div style="text-align:right;"><img src="\2" alt="\1" title="\3"></div>', s)		# rightered img with name
-		s = re.sub(r'!\[(.*)\]\((.*)\s+"(.*)"\)(\s|$)',		r'<img src="\2" alt="\1" title="\3">', s)						# img with name
+		s = re.sub(r'!\[\s(.*)\s\]\((.*)\s+"(.*)"\)(\s|$)', self.img2html_c, s)		# centered img with name
+		s = re.sub(r'!\[\s(.*)\]\((.*)\s+"(.*)"\)(\s|$)', self.img2html_r, s)		# rightered img with name
+		s = re.sub(r'!\[(.*)\]\((.*)\s+"(.*)"\)(\s|$)',	self.img2html, s)		# img with name
 
-		s = re.sub(r'!\[\s(.*)@(.*)\s\]\((.*)\)(\s|$)', r'<div style="text-align:center;"><img src="\3" \2></div>', s)		# img
-		s = re.sub(r'!\[\s(.*)@(.*)\]\((.*)\)(\s|$)', 	r'<div style="text-align:right;"><img src="\3" \2></div>', s)		# img
-		s = re.sub(r'!\[(.*)@(.*)\]\((.*)\)(\s|$)', 	r'<img src="\3" \2>', s)						# img
+		s = re.sub(r'!\[\s(.*)@(.*)\s\]\((.*)\)(\s|$)', self.img2html_c, s)		# img
+		s = re.sub(r'!\[\s(.*)@(.*)\]\((.*)\)(\s|$)', self.img2html_r, s)		# img
+		s = re.sub(r'!\[(.*)@(.*)\]\((.*)\)(\s|$)', self.img2html, s)			# img
 
-		s = re.sub(r'!\[\s(.*)\s\]\((.*)\)(\s|$)', 	r'<div style="text-align:center;"><img src="\2"></div>', s)		# img
-		s = re.sub(r'!\[\s(.*)\]\((.*)\)(\s|$)', 	r'<div style="text-align:right;"><img src="\2"></div>', s)		# img
-		s = re.sub(r'!\[(.*)\]\((.*)\)(\s|$)', 		r'<img src="\2">', s)							# img
+		s = re.sub(r'!\[\s(.*)\s\]\((.*)\)(\s|$)', self.img2html_c, s)			# img
+		s = re.sub(r'!\[\s(.*)\]\((.*)\)(\s|$)', self.img2html_r, s)			# img
+		s = re.sub(r'!\[(.*)\]\((.*)\)(\s|$)', self.img2html, s)			# img
 
 		s = re.sub(r'!\[\s(.*)@(.*)\s\](\s|$)',	self.imgref2html_c, s)			# img with ref
 		s = re.sub(r'!\[\s(.*)@(.*)\](\s|$)',	self.imgref2html_r, s)			# img with ref
 		s = re.sub(r'!\[(.*)@(.*)\](\s|$)',	self.imgref2html, s)			# img with ref
 
-		s = re.sub(r'!\[\s(.*)\](\s|$)',	self.imgref2html_r, s)			# img with ref
 		s = re.sub(r'!\[\s(.*)\s\](\s|$)',	self.imgref2html_c, s)			# img with ref
+		s = re.sub(r'!\[\s(.*)\](\s|$)',	self.imgref2html_r, s)			# img with ref
 		s = re.sub(r'!\[(.*)\](\s|$)',		self.imgref2html, s)			# img with ref
 
 		s = re.sub(r'\[(.*)\]\((.*)\s+"(.*)"\)(\s|$)',	r'<a href="\2" target="_blank" title="\3">\1</a>', s)	# link with name
@@ -375,8 +440,13 @@ class md2HTML:
 		i += 1
 		# is pipe command?
 		if (v != ''):
-			print v
+			cwd = os.getcwd()	# for revert
+			os.chdir(self.apppath)
+
+			cmd = v + ' "' + self.filepath + '"'
+#			cmd = 'pwd'
 			pipebuf = ""
+
 			while (i < len(lines)):
 				l, v, t = lines[i]
 
@@ -385,15 +455,29 @@ class md2HTML:
 					break
 
 				else:
-					pipebuf += pipebuf + l
+					pipebuf = pipebuf + l
 
 				i += 1
 
-			#t = pipes.Template()
-			#t.append(v, '-.')
-			#f = t.open('/tmp/l', 'w')
-			#f.write(pipebuf)
-			#f.close()
+			print "ExtCmd: " + cmd
+			proc = subprocess.Popen(cmd,
+				shell = True,
+				stdin = subprocess.PIPE,
+				stdout = subprocess.PIPE,
+				stderr = subprocess.PIPE)
+
+#			print "pipe: " + pipebuf
+
+			proc_stdout, proc_stderr = proc.communicate(pipebuf)
+			print proc_stdout
+			print proc_stderr
+
+			if (proc.returncode != 0):
+				s.append("<pre>\n")
+				print proc_stderr
+				s.append("</pre>\n")
+
+			os.chdir(cwd)
 
 		else:
 			s.append("<pre>\n")
@@ -593,8 +677,11 @@ class md2HTML:
 			if (t == TOK_HR):			# Holizontal line
 				htmlbuf.append("<hr>\n")
 
-			if (t == TOK_SETEXH1 or t == TOK_SETEXH2):
-				htmlbuf.append("<hr>\n")
+			if (t == TOK_SETEXH1):
+				htmlbuf.append("<hr class='h1'>\n")
+
+			if (t == TOK_SETEXH2):
+				htmlbuf.append("<hr class='h2'>\n")
 
 			if (t == TOK_ATHXH1):
 				htmlbuf.append("<h1>" + self.line2html(v) + "</h1>\n")
@@ -658,7 +745,7 @@ class md2HTML:
 
 		htmlbuf.append("</html>\n")
 
-		print ''.join(htmlbuf)
+#		print ''.join(htmlbuf)
 
 		return ''.join(htmlbuf)
 
@@ -667,8 +754,13 @@ class md2HTML:
 #------------------------------------------------------------------------------
 class mdview:
 	def __init__(self):
+
+		self.apppath = os.path.dirname(os.path.realpath(__file__)) # application path
+
+		self.filepath = ""		# openfile path
 		self.filename = ""
-		self.cssfile = "./default.css"
+
+		self.cssfile = self.apppath + "/default.css"
 		self.html = ""
 
 	def arguments(self):
@@ -679,15 +771,20 @@ class mdview:
 			print "Usage: python %s filename\n" % argvs[0]
 			quit()
 
-		self.filename = argvs[1]
-
+		self.filename = os.path.basename(argvs[1])
+		self.filepath = os.path.dirname(os.path.abspath(argvs[1]))
+		
+		print self.filename
+		print self.filepath
 
 	def openfile(self):
+		fullpath = self.filepath + '/' + self.filename
+
 		try:
-			f = open(self.filename)	# open file
+			f = open(fullpath)	# open file
 
 		except IOError:
-			print "Can not open %s\n" % self.filename
+			print "Can not open %s\n" % fullpath
 			quit()
 
 		p = mdParseClass()
@@ -703,6 +800,9 @@ class mdview:
 		f.close				# close file
 
 		h = md2HTML()			# markdown to html class
+
+		h.apppath = self.apppath
+		h.filepath = self.filepath
 		
 		# read css class
 		try:
@@ -716,25 +816,45 @@ class mdview:
 		self.html = h.toHtml(lines)
 
 		return
+	
+	def savefile(self, path):
+		try:
+			f = open(path,"w+")	# open file
+
+		except IOError:
+			print "Can not open %s\n" % path
+			quit()
+
+		f.write(self.html)
+
+		f.close()
+
+		return 
 
 #------------------------------------------------------------------------------
-class customPanel(wx.ScrolledWindow):
-	def __init__(self, parent):
-		wx.Panel.__init__(self, parent, style = wx.VSCROLL)
-
 class frame_1(wx.Frame):
 	def __init__(self, *args, **kwds):
 		kwds["style"] = wx.DEFAULT_FRAME_STYLE
 		wx.Frame.__init__(self, *args, **kwds)
 
-		icon = wx.Icon('nyacom.ico', wx.BITMAP_TYPE_ICO)
+		self.panel_1 = wx.Panel(self, wx.ID_ANY)
+
+		self.html_1 = wx.html2.WebView.New(self)	# webview
+		self.html1_vscr_pos = 0				# scroll position (how do i better..)
+
+		self.mdview = mdview()				# mdview class
+
+		self.mdview.arguments()
+		self.mdview.openfile()
+
+		icon = wx.Icon(self.mdview.apppath + '/nyacom.ico', wx.BITMAP_TYPE_ICO)
 		self.SetIcon(icon)
 
-		self.panel_1 = wx.Panel(self, wx.ID_ANY)
-		self.html_1 = wx.html2.WebView.New(self)		# webview
-		self.html1_vscr_pos = 0					# scroll position
-
-		self.mdview = mdview()
+		self.savedlg = wx.FileDialog(self, "Save HTML",	# save dialog
+						self.mdview.filepath,
+						self.mdview.filename + '.html',
+						"HTML files (*.html)|*.html|ALL (*.*)|*.*", 
+						wx.FD_SAVE | wx.FD_OVERWRITE_PROMPT)
 		
 		## Menu Bar
 		#self.frame_1_menubar = wx.MenuBar()
@@ -775,13 +895,10 @@ class frame_1(wx.Frame):
 		self.SetSizer(sizer_1)
 		self.Layout()
 
-		self.mdview.arguments()
-		self.mdview.openfile()
-
 		self.SetTitle("Meow! - " + self.mdview.filename)
 
 		self.html_1.SetPage(self.mdview.html, 
-				"file://" + os.path.dirname(os.path.abspath(self.mdview.filename))+ "/")
+				"file://" + self.mdview.filepath + "/")
 
 	def html_1_loaded(self, ev):
 
@@ -803,11 +920,9 @@ class frame_1(wx.Frame):
 			self.html1_vscr_pos = self.html_1.GetScrollPos(wx.VERTICAL) # save scroll pos
 
 			self.mdview.openfile()
-			self.html_1.SetPage(self.mdview.html, 
-					"file://" + os.path.dirname(os.path.abspath(self.mdview.filename))+ "/")
 
-			#self.html_1.SetScrollPos(wx.VERTICAL, pos-10, True)
-			#self.html_1.ScrollLines(100)
+			self.html_1.SetPage(self.mdview.html, 
+					"file://" + self.mdview.filepath + "/")
 
 		if (keycode == 61):	# '+'
 			zoom = self.html_1.GetZoom()
@@ -830,6 +945,10 @@ class frame_1(wx.Frame):
 
 		if (keycode == 80):	# 'p'
 			self.html_1.Print()		# scroll up
+
+		if (keycode == 83):	# 's'
+			if (self.savedlg.ShowModal() == wx.ID_OK):	# save
+				self.mdview.savefile(self.savedlg.Path)
 
 		if (ev.ControlDown() and keycode == 68):	# 'd'
 			self.html_1.PageDown()		# page down

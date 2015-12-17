@@ -1,0 +1,16 @@
+#!/bin/bash
+
+#==========================================================
+# mdview external wrapper
+# by nyacom <kzh@nyacom.net>
+#==========================================================
+
+# The last argument is path for opened file base
+PWD=${@:$#}
+
+# The contents of preview block will be piped to stdin of
+# this script.
+
+if [ -p /dev/stdin ]; then 
+	java -jar plugin/plantuml.jar -tsvg -p > "$PWD/$1"
+fi

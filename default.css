@@ -24,13 +24,31 @@ pre {
 	color:#191970;
 }
 /*--------------------------------------------------------*/
-h1{
+h1, h2, h3, h4, h5, h6 {
 	margin-top: 2em;
 }
 
 /*--------------------------------------------------------*/
 hr{
 	border: 1px solid #696969;
+}
+
+hr.h1{
+	border: 0;
+	height: 2px;
+	background: #333;
+	background-image: -webkit-linear-gradient(left, #ccc, #333, #ccc);
+	background-image:    -moz-linear-gradient(left, #ccc, #333, #ccc);
+	background-image:     -ms-linear-gradient(left, #ccc, #333, #ccc);
+	background-image:      -o-linear-gradient(left, #ccc, #333, #ccc);
+
+	page-break-before: always;
+}
+
+hr.h2{
+	border: 0;
+	border-bottom: 1px dashed #ccc;
+	background: #999;
 }
 
 /*--------------------------------------------------------*/
