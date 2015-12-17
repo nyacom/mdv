@@ -106,8 +106,8 @@ class mdParseClass:
 		self.toks.append(mdToken(r'^\s{,4}\|(.*)\|[\s\t]*$', TOK_TABLE))	# table
 		self.toks.append(mdToken(r'^\s{,4}>(.*)$', TOK_QUOTE))			# quote
 
-		self.toks.append(mdToken(r'^\s{,4}```s*(.*)$',		TOK_PRE1))	# pre 1
-		self.toks.append(mdToken(r'^\s{4}(.*)$',		TOK_PRE2))	# pre 2
+		self.toks.append(mdToken(r'^\s{,3}```s*(.*)$',		TOK_PRE1))	# pre 1
+		self.toks.append(mdToken(r'^\s{3}(.*)$',		TOK_PRE2))	# pre 2
 
 		self.toks.append(mdToken(r'^\s{,4}\[(.*)\]:.*$',		TOK_REF))	# ref
 		self.toks.append(mdToken(r'^\s{,4}\[(.*)\]:.*\s+".*"$',		TOK_REF))	# ref
